@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace az::interface {
+namespace alphazero::api {
 
 /**
  * @brief ** DO NOT MODIFY ** PolicyOutput class is the output of the policy
@@ -69,6 +69,6 @@ struct PolicyOutput {
   std::vector<float> probabilities;
 };
 
-}  // namespace az::interface
+}  // namespace alphazero::api
 
 #endif  // ALPHA_ZERO_API_POLICY_OUTPUT_H_

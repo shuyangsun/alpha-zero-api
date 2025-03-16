@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-namespace az::interface {
+namespace alphazero::api {
 
 PolicyOutput::PolicyOutput(float value, std::vector<float>&& probabilities)
     : value{value}, probabilities{std::move(probabilities)} {}
@@ -21,4 +21,4 @@ PolicyOutput::PolicyOutput(const std::vector<float>& nn_output)
     : value{nn_output.front()},
       probabilities{nn_output.begin() + 1, nn_output.end()} {}
 
-}  // namespace az::interface
+}  // namespace alphazero::api
