@@ -1,9 +1,9 @@
-#ifndef ALPHA_ZERO_API_POLICY_OUTPUT_H_
-#define ALPHA_ZERO_API_POLICY_OUTPUT_H_
+#ifndef ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_
+#define ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_
 
 #include <vector>
 
-namespace alphazero::api {
+namespace alphazero::game::api {
 
 /**
  * @brief ** DO NOT MODIFY ** PolicyOutput class is the output of the policy
@@ -69,6 +69,6 @@ struct PolicyOutput {
   std::vector<float> probabilities;
 };
 
-}  // namespace alphazero::api
+}  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_POLICY_OUTPUT_H_
+#endif  // ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_

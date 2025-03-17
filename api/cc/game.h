@@ -1,5 +1,5 @@
-#ifndef ALPHA_ZERO_API_GAME_H_
-#define ALPHA_ZERO_API_GAME_H_
+#ifndef ALPHA_ZERO_API_API_CPP_GAME_H_
+#define ALPHA_ZERO_API_API_CPP_GAME_H_
 
 #include <cstdint>
 #include <expected>
@@ -9,7 +9,7 @@
 #include <string_view>
 #include <vector>
 
-namespace alphazero::api {
+namespace alphazero::game::api {
 
 /**
  * @brief IGame is the interface of a specific game implementation. It is the
@@ -189,6 +189,6 @@ class IGame {
   virtual ~IGame() = default;
 };
 
-}  // namespace alphazero::api
+}  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_GAME_H_
+#endif  // ALPHA_ZERO_API_API_CPP_GAME_H_
