@@ -1,5 +1,5 @@
-#ifndef ALPHA_ZERO_API_API_CPP_INCLUDE_GAME_H_
-#define ALPHA_ZERO_API_API_CPP_INCLUDE_GAME_H_
+#ifndef ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_GAME_H_
+#define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_GAME_H_
 
 #include <cstdint>
 #include <expected>
@@ -191,4 +191,4 @@ class IGame {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_INCLUDE_GAME_H_
+#endif  // ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_GAME_H_

@@ -1,14 +1,94 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-project(LibAlphaZeroAPI LANGUAGES CXX)
+project(AlphaZeroAPI
+    VERSION 0.0.1
+    LANGUAGES CXX
+)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -DNDEBUG")
 
-add_library(libalphazero_api OBJECT lib/cpp/policy_output.cc)
-target_include_directories(libalphazero_api PUBLIC ${PROJECT_SOURCE_DIR})
+# =========================== Configuration options ============================
+option(STATIC_ONLY "Build static library only." False)
+option(SHARED_ONLY "Build shared library only." False)
 
-set_property(TARGET libalphazero_api PROPERTY POSITION_INDEPENDENT_CODE 1)
-add_library(libalphazero_api_static STATIC $<TARGET_OBJECTS:libalphazero_api>)
-target_include_directories(libalphazero_api PUBLIC ${PROJECT_SOURCE_DIR})
+if(STATIC_ONLY AND SHARED_ONLY)
+    message(FATAL_ERROR "STATIC_ONLY and SHARED_ONLY cannot be both True.")
+endif()
+
+option(DEFAULT_SERIALIZER "Build with default implementations of ISerializer." True)
+option(DEFAULT_DESERIALIZER "Build with default implementation of IDeserializer." True)
+
+configure_file(
+    api/cpp/AlphaZeroAPI/include/configuration.h.in
+    api/cpp/AlphaZeroAPI/include/configuration.h
+)
+
+# =============================== Build Targets ================================
+add_library(api INTERFACE)
+target_include_directories(api INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/api/cpp>
+    $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS api
+    EXPORT AlphaZeroAPITargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/api/cpp/AlphaZeroAPI/include/configuration.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/game.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/policy_output.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/serializer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/deserializer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/augmenter.h
+    DESTINATION include
+    COMPONENT api
+)
+export(EXPORT AlphaZeroAPITargets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/AlphaZeroAPITargets.cmake"
+    NAMESPACE AlphaZeroAPI::
+)
+configure_file(cmake/AlphaZeroAPIConfig.cmake
+    "${CMAKE_CURRENT_BINARY_DIR}/AlphaZeroAPIConfig.cmake"
+    COPYONLY
+)
+
+set(ConfigPackageLocation lib/cmake/AlphaZeroAPI)
+install(EXPORT AlphaZeroAPITargets
+    FILE AlphaZeroAPITargets.cmake
+    NAMESPACE AlphaZeroAPI::
+    DESTINATION ${ConfigPackageLocation}
+)
+install(
+    FILES
+    cmake/AlphaZeroAPIConfig.cmake
+    DESTINATION ${ConfigPackageLocation}
+    COMPONENT api
+)
+# export(TARGETS AlphaZeroAPI
+#     NAMESPACE AlphaZeroAPI::
+#     FILE "${CMAKE_CURRENT_BINARY_DIR}/AlphaZeroAPIConfig.cmake"
+# )
+
+# install(EXPORT AlphaZeroAPIConfig
+#     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/lib/cmake/AlphaZeroAPI"
+#     NAMESPACE AlphaZeroAPI::
+# )
+
+# set_property(TARGET AlphaZeroAPI PROPERTY POSITION_INDEPENDENT_CODE 1)
+# if(DEFAULT_SERIALIZER)
+#     target_compile_definitions(AlphaZeroAPI PRIVATE "DEFAULT_SERIALIZER")
+# endif()
+
+# if(NOT SHARED_ONLY)
+#     add_library(AlphaZeroAPI_static STATIC $<TARGET_OBJECTS:AlphaZeroAPI>)
+# endif()
+
+# if(NOT STATIC_ONLY)
+#     add_library(AlphaZeroAPI_shared SHARED $<TARGET_OBJECTS:AlphaZeroAPI>)
+# endif()

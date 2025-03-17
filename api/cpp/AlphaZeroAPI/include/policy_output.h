@@ -1,6 +1,8 @@
-#ifndef ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_
-#define ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_
+#ifndef ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_POLICY_OUTPUT_H_
+#define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_POLICY_OUTPUT_H_
 
+#include <iterator>
+#include <utility>
 #include <vector>
 
 namespace alphazero::game::api {
@@ -23,7 +25,8 @@ struct PolicyOutput {
    * @param value Value of the current state.
    * @param probabilities Vector of probabilities of selecting each action.
    */
-  PolicyOutput(float value, std::vector<float>&& probabilities);
+  PolicyOutput(float value, std::vector<float>&& probabilities)
+      : value{value}, probabilities{std::move(probabilities)} {}
 
   /**
    * @brief Construct a new PolicyOutput object from a value and an l-value
@@ -32,7 +35,8 @@ struct PolicyOutput {
    * @param value Value of the current state.
    * @param probabilities Vector of probabilities of selecting each action.
    */
-  PolicyOutput(float value, const std::vector<float>& probabilities);
+  PolicyOutput(float value, const std::vector<float>& probabilities)
+      : value{value}, probabilities{probabilities} {}
 
   /**
    * @brief Construct a new PolicyOutput object from an r-value vector that
@@ -43,7 +47,10 @@ struct PolicyOutput {
    * @param nn_output Vector of single-precision floats that represents the
    * output of the neural network.
    */
-  PolicyOutput(std::vector<float>&& nn_output);
+  PolicyOutput(std::vector<float>&& nn_output)
+      : value{nn_output.front()},
+        probabilities{std::make_move_iterator(nn_output.begin() + 1),
+                      std::make_move_iterator(nn_output.end())} {}
 
   /**
    * @brief Construct a new PolicyOutput object from an r-value vector that
@@ -54,7 +61,9 @@ struct PolicyOutput {
    * @param nn_output Vector of single-precision floats that represents the
    * output of the neural network.
    */
-  PolicyOutput(const std::vector<float>& nn_output);
+  PolicyOutput(const std::vector<float>& nn_output)
+      : value{nn_output.front()},
+        probabilities{nn_output.begin() + 1, nn_output.end()} {}
 
   ~PolicyOutput() = default;
 
@@ -71,4 +80,4 @@ struct PolicyOutput {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_
+#endif  // ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_POLICY_OUTPUT_H_

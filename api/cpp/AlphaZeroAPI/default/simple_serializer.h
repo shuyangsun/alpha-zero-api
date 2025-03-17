@@ -1,0 +1,14 @@
+#ifndef ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_DEFAULT_SIMPLE_SERIALIZER_H_
+#define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_DEFAULT_SIMPLE_SERIALIZER_H_
+
+#ifdef DEFAULT_SERIALIZER
+  #include "AlphaZeroAPI/include/serializer.h"
+#endif  // DEFAULT_SERIALIZER
+
+#ifdef DEFAULT_SERIALIZER
+
+namespace alphazero::game::api {}  // namespace alphazero::game::api
+
+#endif  // DEFAULT_SERIALIZER
+
+#endif  // ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_DEFAULT_SIMPLE_SERIALIZER_H_

@@ -1,11 +1,13 @@
-#ifndef ALPHA_ZERO_API_API_CPP_INCLUDE_SERIALIZER_H_
-#define ALPHA_ZERO_API_API_CPP_INCLUDE_SERIALIZER_H_
+#ifndef ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_SERIALIZER_H_
+#define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_SERIALIZER_H_
 
+#include <span>
 #include <string>
 #include <vector>
 
-#include "api/cpp/include/game.h"
-#include "api/cpp/include/policy_output.h"
+#include "AlphaZeroAPI/include/configuration.h"
+#include "AlphaZeroAPI/include/game.h"
+#include "AlphaZeroAPI/include/policy_output.h"
 
 namespace alphazero::game::api {
 
@@ -36,7 +38,7 @@ class ISerializer {
    * floats.
    */
   virtual std::vector<float> Serialize(const B& board, const P& player,
-                                       std::span<cons A> actions) const = 0;
+                                       std::span<const A> actions) const = 0;
 
   /**
    * @brief Serialize a PolicyOutput object to a vector of floats.
@@ -55,4 +57,4 @@ class ISerializer {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_INCLUDE_SERIALIZER_H_
+#endif  // ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_SERIALIZER_H_
