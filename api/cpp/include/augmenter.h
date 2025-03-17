@@ -23,13 +23,6 @@ template <typename B, typename A, typename P>
 class IAugmenter {
  public:
   /**
-   *
-   * @param game Game to augment for inference.
-   * @return std::vector<std::shared_ptr<const IGame<B, A, P>>> Vector of
-   * augmented games.
-   */
-
-  /**
    * @brief Augment the game state for inference.
    *
    * The function parameters are the same as Serializer<B, A, P>::Serialize.
