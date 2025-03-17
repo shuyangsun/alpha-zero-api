@@ -2,7 +2,7 @@
 #define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_DEFAULT_SIMPLE_SERIALIZER_H_
 
 #ifdef DEFAULT_SERIALIZER
-  #include "AlphaZeroAPI/include/serializer.h"
+  #include "alpha-zero-api/serializer.h"
 #endif  // DEFAULT_SERIALIZER
 
 #ifdef DEFAULT_SERIALIZER

@@ -2,7 +2,7 @@
 #define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_DEFAULT_SIMPLE_DESERIALIZER_H_
 
 #ifdef DEFAULT_DESERIALIZER
-  #include "AlphaZeroAPI/include/deserializer.h"
+  #include "alpha-zero-api/deserializer.h"
 #endif  // DEFAULT_DESERIALIZER
 
 #ifdef DEFAULT_DESERIALIZER

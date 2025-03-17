@@ -1,11 +1,11 @@
-#ifndef ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_DESERIALIZER_H_
-#define ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_DESERIALIZER_H_
+#ifndef ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_
+#define ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_
 
 #include <expected>
 #include <span>
 
-#include "AlphaZeroAPI/include/game.h"
-#include "AlphaZeroAPI/include/policy_output.h"
+#include "alpha-zero-api/game.h"
+#include "alpha-zero-api/policy_output.h"
 
 namespace alphazero::game::api {
 
@@ -42,4 +42,4 @@ class IDeserializer {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_ALPHAZEROAPI_INCLUDE_DESERIALIZER_H_
+#endif  // ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_

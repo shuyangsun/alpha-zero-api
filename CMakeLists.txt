@@ -21,15 +21,15 @@ option(DEFAULT_SERIALIZER "Build with default implementations of ISerializer." T
 option(DEFAULT_DESERIALIZER "Build with default implementation of IDeserializer." True)
 
 configure_file(
-    api/cpp/AlphaZeroAPI/include/configuration.h.in
-    api/cpp/AlphaZeroAPI/include/configuration.h
+    include/alpha-zero-api/configuration.h.in
+    include/alpha-zero-api/configuration.h
 )
 
 # =============================== Build Targets ================================
 add_library(api INTERFACE)
 target_include_directories(api INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/api/cpp>
-    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+    $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
 install(TARGETS api
@@ -40,13 +40,13 @@ install(TARGETS api
     INCLUDES DESTINATION include
 )
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/api/cpp/AlphaZeroAPI/include/configuration.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/game.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/policy_output.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/serializer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/deserializer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/cpp/AlphaZeroAPI/include/augmenter.h
-    DESTINATION include
+    ${CMAKE_CURRENT_BINARY_DIR}/include/alpha-zero-api/configuration.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alpha-zero-api/game.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alpha-zero-api/policy_output.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alpha-zero-api/serializer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alpha-zero-api/deserializer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alpha-zero-api/augmenter.h
+    DESTINATION include/alpha-zero-api
     COMPONENT api
 )
 export(EXPORT AlphaZeroAPITargets
