@@ -27,6 +27,21 @@ template <typename B, typename A, typename P>
 class IGame {
  public:
   /**
+   * @brief Type representing the game board state.
+   */
+  using board_t = B;
+
+  /**
+   * @brief Type of a single action a player can take.
+   */
+  using action_t = A;
+
+  /**
+   * @brief Type representing a player.
+   */
+  using player_t = P;
+
+  /**
    * @brief Copy the current game state.
    *
    * @return std::unique_ptr<const IGame<B, A, P>> Pointer to a new copy of this
@@ -188,6 +203,9 @@ class IGame {
 
   virtual ~IGame() = default;
 };
+
+using ITwoPlayerBinaryBoardGame =
+    IGame<std::vector<std::vector<uint8_t>>, uint16_t, bool>;
 
 }  // namespace alphazero::game::api
 
