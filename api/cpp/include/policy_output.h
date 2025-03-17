@@ -1,5 +1,5 @@
-#ifndef ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_
-#define ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_
+#ifndef ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_
+#define ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_
 
 #include <vector>
 
@@ -71,4 +71,4 @@ struct PolicyOutput {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_POLICY_OUTPUT_H_
+#endif  // ALPHA_ZERO_API_API_CPP_INCLUDE_POLICY_OUTPUT_H_

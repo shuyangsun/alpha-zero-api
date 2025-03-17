@@ -1,12 +1,12 @@
-#ifndef ALPHA_ZERO_API_API_CPP_AUGMENTER_H_
-#define ALPHA_ZERO_API_API_CPP_AUGMENTER_H_
+#ifndef ALPHA_ZERO_API_API_CPP_INCLUDE_AUGMENTER_H_
+#define ALPHA_ZERO_API_API_CPP_INCLUDE_AUGMENTER_H_
 
 #include <memory>
 #include <utility>
 #include <vector>
 
-#include "api/cpp/game.h"
-#include "api/cpp/policy_output.h"
+#include "api/cpp/include/game.h"
+#include "api/cpp/include/policy_output.h"
 
 namespace alphazero::game::api {
 
@@ -68,4 +68,4 @@ class IAugmenter {
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_API_CPP_AUGMENTER_H_
+#endif  // ALPHA_ZERO_API_API_CPP_INCLUDE_AUGMENTER_H_
