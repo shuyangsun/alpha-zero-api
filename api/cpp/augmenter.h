@@ -5,18 +5,18 @@
 #include <utility>
 #include <vector>
 
-#include "api/cc/game.h"
-#include "api/cc/policy_output.h"
+#include "api/cpp/game.h"
+#include "api/cpp/policy_output.h"
 
 namespace alphazero::game::api {
 
 /**
  * @brief Augment the game before inference or sample data for training.
  *
- * @tparam B Type of board. See documentation for IGame in api/cc/game.h.
+ * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
  * @tparam A Type of a single action. See documentation for IGame in
- * api/cc/game.h.
- * @tparam P Type of player. See documentation for IGame in api/cc/game.h.
+ * api/cpp/game.h.
+ * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
  */
 template <typename B, typename A, typename P>
 class IAugmenter {

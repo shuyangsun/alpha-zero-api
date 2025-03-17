@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cc/game.h"
+#include "api/cpp/game.h"
 
 namespace alphazero::game::api {
 
@@ -12,10 +12,10 @@ namespace alphazero::game::api {
  * @brief ISerializer is an interface for serializing a particular game state to
  * the neural network input.
  *
- * @tparam B Type of board. See documentation for IGame in api/cc/game.h.
+ * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
  * @tparam A Type of a single action. See documentation for IGame in
- * api/cc/game.h.
- * @tparam P Type of player. See documentation for IGame in api/cc/game.h.
+ * api/cpp/game.h.
+ * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
  */
 template <typename B, typename A, typename P>
 class ISerializer {

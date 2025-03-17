@@ -4,8 +4,8 @@
 #include <expected>
 #include <span>
 
-#include "api/cc/game.h"
-#include "api/cc/policy_output.h"
+#include "api/cpp/game.h"
+#include "api/cpp/policy_output.h"
 
 namespace alphazero::game::api {
 
@@ -15,7 +15,7 @@ namespace alphazero::game::api {
  * TODO: explain when to use default when to use customized.
  *
  * @tparam A Type of a single action. See documentation for IGame in
- * api/cc/game.h.
+ * api/cpp/game.h.
  */
 template <typename A>
 class IDeserializer {
