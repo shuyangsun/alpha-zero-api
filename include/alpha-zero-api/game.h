@@ -122,7 +122,7 @@ class IGame {
    *
    * @return std::vector<A> Actions the current player can take.
    */
-  virtual std::vector<A> Actions() const = 0;
+  virtual std::vector<A> ValidActions() const = 0;
 
   /**
    * @brief Game state after the current player takes a given action.
