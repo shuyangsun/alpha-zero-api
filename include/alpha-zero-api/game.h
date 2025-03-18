@@ -204,12 +204,12 @@ class IGame {
   virtual ~IGame() = default;
 };
 
-using BinaryFlatBoard = std::vector<std::vector<uint8_t>>;
+using BinaryBoardFlat = std::vector<std::vector<uint8_t>>;
 using Action1D = uint16_t;
 using BinaryPlayer = bool;
 
 using ITwoPlayerBinaryBoardGame =
-    IGame<BinaryFlatBoard, Action1D, BinaryPlayer>;
+    IGame<BinaryBoardFlat, Action1D, BinaryPlayer>;
 
 }  // namespace alphazero::game::api
 
