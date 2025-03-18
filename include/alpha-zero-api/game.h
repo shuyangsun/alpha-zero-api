@@ -207,6 +207,8 @@ class IGame {
 using StandardFlatBoard = std::vector<uint8_t>;
 using Action1D = uint16_t;
 using BinaryPlayer = bool;
+constexpr BinaryPlayer Player1 = false;
+constexpr BinaryPlayer Player2 = true;
 
 using ITwoPlayerFlatBoardGame =
     IGame<StandardFlatBoard, Action1D, BinaryPlayer>;
