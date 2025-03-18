@@ -208,7 +208,7 @@ using StandardFlatBoard = std::vector<std::vector<uint8_t>>;
 using Action1D = uint16_t;
 using BinaryPlayer = bool;
 
-using ITwoPlayerBinaryBoardGame =
+using ITwoPlayerFlatBoardGame =
     IGame<StandardFlatBoard, Action1D, BinaryPlayer>;
 
 }  // namespace alphazero::game::api
