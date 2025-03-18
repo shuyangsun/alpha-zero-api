@@ -204,7 +204,7 @@ class IGame {
   virtual ~IGame() = default;
 };
 
-using StandardFlatBoard = std::vector<std::vector<uint8_t>>;
+using StandardFlatBoard = std::vector<uint8_t>;
 using Action1D = uint16_t;
 using BinaryPlayer = bool;
 
