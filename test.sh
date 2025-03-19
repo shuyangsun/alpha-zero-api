@@ -61,16 +61,10 @@ cd ../..
 print_test_result $EXIT_CODE -ne "shared-only and static-only (should fail)"
 
 rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
-cmake -G Ninja -DDEFAULT_SERIALIZER=True ../.. &&  cmake --build .
+cmake -G Ninja -DDEFAULTS=True ../.. &&  cmake --build .
 EXIT_CODE=$?
 cd ../..
-print_test_result $EXIT_CODE -eq "default serializer"
-
-rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
-cmake -G Ninja -DDEFAULT_DESERIALIZER=True ../.. &&  cmake --build .
-EXIT_CODE=$?
-cd ../..
-print_test_result $EXIT_CODE -eq "default deserializer"
+print_test_result $EXIT_CODE -eq "defaults"
 
 rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
 cmake -G Ninja ../../tests/cmake_externalproject &&  cmake --build .
