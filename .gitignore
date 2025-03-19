@@ -51,8 +51,11 @@ __pycache__/
 .Python
 build/
 cmake-build-*
+cmake_install.cmake
 CMakeCache.txt
 CMakeFiles/
+CTestTestfile.cmake
+CPackConfig.cmake
 develop-eggs/
 dist/
 downloads/
