@@ -67,7 +67,7 @@ cd ../..
 print_test_result $EXIT_CODE -eq "defaults"
 
 rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
-cmake -G Ninja ../../tests/cmake_externalproject &&  cmake --build .
+cmake -G Ninja ../../test/cmake_externalproject &&  cmake --build .
 EXIT_CODE=$?
 cd ../..
 print_test_result $EXIT_CODE -eq "tests super build"
