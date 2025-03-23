@@ -1,5 +1,5 @@
-#ifndef ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_GAME_H_
-#define ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_GAME_H_
+#ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
+#define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
 
 #include <cstdint>
 #include <expected>
@@ -215,4 +215,4 @@ using ITwoPlayerFlatBoardGame =
 
 }  // namespace alphazero::game::api
 
-#endif  // ALPHA_ZERO_API_INCLUDE_ALPHA_ZERO_API_GAME_H_
+#endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
