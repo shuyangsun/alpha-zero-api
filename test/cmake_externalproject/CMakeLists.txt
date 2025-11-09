@@ -24,6 +24,7 @@ ExternalProject_Add(AlphaZeroAPITests
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/alpha-zero-api-tests"
     INSTALL_COMMAND ""
     CMAKE_CACHE_ARGS
-        -DAlphaZeroAPI_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/AlphaZeroAPI/lib
+        -DAlphaZeroAPI_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/alpha-zero-api/lib/cmake/AlphaZeroAPI
+        -DCMAKE_PREFIX_PATH:PATH=${CMAKE_CURRENT_BINARY_DIR}/alpha-zero-api
     DEPENDS AlphaZeroAPI
 )

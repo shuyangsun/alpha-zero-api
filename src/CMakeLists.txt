@@ -57,7 +57,7 @@ if(DEFAULTS)
     install(FILES
         include/alpha-zero-api/defaults/serializer.h
         include/alpha-zero-api/defaults/deserializer.h
-        DESTINATION lib/include/alpha-zero-api/defaults
+        DESTINATION include/alpha-zero-api/defaults
         COMPONENT defaults
     )
 endif() # DEFAULTS
@@ -73,7 +73,7 @@ configure_file(cmake/AlphaZeroAPIConfig.cmake
     COPYONLY
 )
 
-set(ConfigPackageLocation ${CMAKE_CURRENT_BINARY_DIR})
+set(ConfigPackageLocation lib/cmake/AlphaZeroAPI)
 install(EXPORT AlphaZeroAPITargets
     FILE AlphaZeroAPITargets.cmake
     NAMESPACE AlphaZeroAPI::
