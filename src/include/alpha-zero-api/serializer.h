@@ -40,18 +40,6 @@ class ISerializer {
   virtual std::vector<float> Serialize(const B& board, const P& player,
                                        std::span<const A> actions) const = 0;
 
-  /**
-   * @brief Serialize a PolicyOutput object to a vector of floats.
-   *
-   * The returned vector should be of fixed size, because it will be used to
-   * provide training data output for the neural network.
-   *
-   * @param output PolicyOutput object to serialize.
-   * @return std::vector<float> Serialized PolicyOutput object as a vector of
-   * single-precision floats.
-   */
-  virtual std::vector<float> Serialize(const PolicyOutput& output) const = 0;
-
   virtual ~ISerializer() = default;
 };
 

@@ -22,6 +22,7 @@ ExternalProject_Add(AlphaZeroAPITests
     PREFIX AlphaZeroAPITests
     SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.."
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/alpha-zero-api-tests"
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --target connect4-main
     INSTALL_COMMAND ""
     CMAKE_CACHE_ARGS
         -DAlphaZeroAPI_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/alpha-zero-api/lib/cmake/AlphaZeroAPI

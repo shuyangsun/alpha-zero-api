@@ -17,3 +17,12 @@ target_include_directories(alpha-zero-api-test-lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_BINARY_DIR}
 )
+
+add_executable(connect4-main
+    ${CMAKE_CURRENT_SOURCE_DIR}/connect4/main.cc
+)
+target_link_libraries(connect4-main PRIVATE alpha-zero-api-test-lib)
+target_include_directories(connect4-main PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
+)
