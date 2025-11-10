@@ -26,6 +26,8 @@ namespace alphazero::game::api {
 template <typename B, typename A, typename P>
 class IGame {
  public:
+  virtual ~IGame() = default;
+
   /**
    * @brief Type representing the game board state.
    */
@@ -200,18 +202,7 @@ class IGame {
    * @return std::string Readable string of the action.
    */
   virtual std::string ActionToString(const A& action) const = 0;
-
-  virtual ~IGame() = default;
 };
-
-using StandardFlatBoard = std::vector<uint8_t>;
-using Action1D = uint16_t;
-using BinaryPlayer = bool;
-constexpr BinaryPlayer Player1 = false;
-constexpr BinaryPlayer Player2 = true;
-
-using ITwoPlayerFlatBoardGame =
-    IGame<StandardFlatBoard, Action1D, BinaryPlayer>;
 
 }  // namespace alphazero::game::api
 

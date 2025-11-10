@@ -6,9 +6,8 @@ set -e
 
 BUILD_DIR="build/build-tests"
 
-if [ ! -d "${BUILD_DIR}" ]; then
-    mkdir -p "${BUILD_DIR}"
-fi
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -72,5 +71,5 @@ EXIT_CODE=$?
 cd ../..
 print_test_result $EXIT_CODE -eq "tests super build"
 
-# Clean up.
-rm -rf "${BUILD_DIR}"
+# # Clean up.
+# rm -rf "${BUILD_DIR}"

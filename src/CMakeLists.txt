@@ -56,6 +56,7 @@ if(DEFAULTS)
     )
     install(FILES
         include/alpha-zero-api/defaults/serializer.h
+        include/alpha-zero-api/defaults/game.h
         include/alpha-zero-api/defaults/deserializer.h
         DESTINATION include/alpha-zero-api/defaults
         COMPONENT defaults

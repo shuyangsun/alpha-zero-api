@@ -5,11 +5,13 @@
 #include <span>
 #include <vector>
 
+#include "game.h"
+
 namespace alphazero::game::api::test {
 
-std::vector<float> Connect4Serializer::Serialize(
-    const std::array<int8_t, 4>& board, const bool& player,
-    std::span<const int8_t> actions) const {
+std::vector<float> C4Serializer::Serialize(
+    const C4Board& board, const C4Player& player,
+    std::span<const C4Action> actions) const {
   return std::vector<float>{};  // TODO
 }
 

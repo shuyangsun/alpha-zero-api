@@ -7,18 +7,17 @@
 #include <vector>
 
 #include "alpha-zero-api/serializer.h"
+#include "game.h"
 
 namespace alphazero::game::api::test {
 
-class Connect4Serializer
-    : public ISerializer<std::array<int8_t, 4>, int8_t, bool> {
+class C4Serializer : public IGameSerializer<C4Board, C4Action, C4Player> {
  public:
-  Connect4Serializer() = default;
-  ~Connect4Serializer() override = default;
+  C4Serializer() = default;
+  ~C4Serializer() override = default;
 
-  std::vector<float> Serialize(const std::array<int8_t, 4>& board,
-                               const bool& player,
-                               std::span<const int8_t> actions) const final;
+  std::vector<float> Serialize(const C4Board& board, const C4Player& player,
+                               std::span<const C4Action> actions) const final;
 };
 
 }  // namespace alphazero::game::api::test

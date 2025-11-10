@@ -15,14 +15,18 @@ namespace alphazero::game::api {
  * @brief ISerializer is an interface for serializing a particular game state to
  * the neural network input.
  *
- * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
+ * @tparam B Type of board. See documentation for IGame in
+ * src/include/alpha-zero-api/game.h.
  * @tparam A Type of a single action. See documentation for IGame in
- * api/cpp/game.h.
- * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
+ * src/include/alpha-zero-api/game.h.
+ * @tparam P Type of player. See documentation for IGame in
+ * src/include/alpha-zero-api/game.h.
  */
 template <typename B, typename A, typename P>
-class ISerializer {
+class IGameSerializer {
  public:
+  virtual ~IGameSerializer() = default;
+
   /**
    * @brief Serializes the given game state to a vector of floats as the neural
    * network input. The input format should at least include the current board
@@ -39,8 +43,27 @@ class ISerializer {
    */
   virtual std::vector<float> Serialize(const B& board, const P& player,
                                        std::span<const A> actions) const = 0;
+};
 
-  virtual ~ISerializer() = default;
+template <typename B, typename A, typename P>
+class IPolicyOutputSerializer {
+ public:
+  virtual ~IPolicyOutputSerializer() = default;
+
+  /**
+   * @brief Serialize a `PolicyOutput` object to a fixed-size vector of floats
+   * as the neural network output training data.
+   *
+   * @param board Current board state.
+   * @param player Current player.
+   * @param actions Available actions.
+   * @param output PolicyOutput object to serialize.
+   * @return std::vector<float> Serialized PolicyOutput object as a vector of
+   * single-precision floats.
+   */
+  virtual std::vector<float> Serialize(const B& board, const P& player,
+                                       std::span<const A> actions,
+                                       const PolicyOutput& output) const = 0;
 };
 
 }  // namespace alphazero::game::api

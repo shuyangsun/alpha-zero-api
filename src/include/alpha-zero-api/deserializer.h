@@ -2,6 +2,7 @@
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_
 
 #include <expected>
+#include <format>
 #include <span>
 
 #include "alpha-zero-api/game.h"
@@ -10,16 +11,22 @@
 namespace alphazero::game::api {
 
 /**
- * @brief Deserializes output from the neural network to PolicyOutput object.
+ * @brief Deserializes output from the neural network to a PolicyOutput object.
  *
  * TODO: explain when to use default when to use customized.
  *
+ * @tparam B Type of board. See documentation for IGame in
+ * src/include/alpha-zero-api/game.h.
  * @tparam A Type of a single action. See documentation for IGame in
- * api/cpp/game.h.
+ * src/include/alpha-zero-api/game.h.
+ * @tparam P Type of player. See documentation for IGame in
+ * src/include/alpha-zero-api/game.h.
  */
-template <typename A>
-class IDeserializer {
+template <typename B, typename A, typename P>
+class IPolicyOutputDeserializer {
  public:
+  virtual ~IPolicyOutputDeserializer() = default;
+
   /**
    * @brief Deserializes the output from the neural network to a PolicyOutput.
    *
@@ -35,9 +42,8 @@ class IDeserializer {
    * deserialization is successful, error message otherwise.
    */
   virtual std::expected<PolicyOutput, std::string> Deserialize(
-      std::span<const A> actions, std::span<const float> output) const = 0;
-
-  virtual ~IDeserializer() = default;
+      const B& board, const P& player, std::span<const A> actions,
+      std::span<const float> output) const = 0;
 };
 
 }  // namespace alphazero::game::api
