@@ -1,13 +1,85 @@
 #include "tic_tac_toe/game.h"
 
+#include <cctype>
 #include <cstdint>
 #include <expected>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace alphazero::game::api::test {
+
+namespace {
+
+std::string_view Trim(std::string_view input) {
+  while (!input.empty() &&
+         std::isspace(static_cast<unsigned char>(input.front()))) {
+    input.remove_prefix(1);
+  }
+  while (!input.empty() &&
+         std::isspace(static_cast<unsigned char>(input.back()))) {
+    input.remove_suffix(1);
+  }
+  return input;
+}
+
+char CellSymbol(int8_t value) {
+  if (value == 1) {
+    return 'X';
+  }
+  if (value == -1) {
+    return 'O';
+  }
+  return ' ';
+}
+
+enum class GameStatus : uint8_t {
+  ONGOING,
+  DRAW,
+  WIN_PLAYER_X,
+  WIN_PLAYER_O,
+};
+
+GameStatus CheckGameStatus(const TttBoard& board) {
+  // Check rows and columns
+  for (uint16_t i = 0; i < TTT_ROWS; ++i) {
+    if (board[i][0] != 0 && board[i][0] == board[i][1] &&
+        board[i][1] == board[i][2]) {
+      return board[i][0] == 1 ? GameStatus::WIN_PLAYER_X
+                              : GameStatus::WIN_PLAYER_O;
+    }
+    if (board[0][i] != 0 && board[0][i] == board[1][i] &&
+        board[1][i] == board[2][i]) {
+      return board[0][i] == 1 ? GameStatus::WIN_PLAYER_X
+                              : GameStatus::WIN_PLAYER_O;
+    }
+  }
+  // Check diagonals
+  if (board[0][0] != 0 && board[0][0] == board[1][1] &&
+      board[1][1] == board[2][2]) {
+    return board[0][0] == 1 ? GameStatus::WIN_PLAYER_X
+                            : GameStatus::WIN_PLAYER_O;
+  }
+  if (board[0][2] != 0 && board[0][2] == board[1][1] &&
+      board[1][1] == board[2][0]) {
+    return board[0][2] == 1 ? GameStatus::WIN_PLAYER_X
+                            : GameStatus::WIN_PLAYER_O;
+  }
+  // Check for ongoing or draw
+  for (const auto& row : board) {
+    for (const auto& cell : row) {
+      if (cell == 0) {
+        return GameStatus::ONGOING;
+      }
+    }
+  }
+  return GameStatus::DRAW;
+}
+
+}  // namespace
 
 TttGame::TttGame(TttPlayer starting_player)
     : current_player_(starting_player) {}
@@ -30,45 +102,132 @@ std::optional<TttPlayer> TttGame::LastPlayer() const {
 std::optional<TttAction> TttGame::LastAction() const { return last_action_; }
 
 TttBoard TttGame::CanonicalBoard() const {
-  // TODO: Return the canonical board from the current player's view.
-  return board_;
+  if (!current_player_) {
+    return board_;
+  }
+  TttBoard result = board_;
+  for (auto& row : result) {
+    for (auto& cell : row) {
+      if (cell == 0) {
+        continue;
+      }
+      cell = -cell;
+    }
+  }
+  return result;
 }
 
 std::vector<TttAction> TttGame::ValidActions() const {
-  // TODO: Calculate the valid actions for the current player.
-  return {};
+  std::vector<TttAction> actions;
+  actions.reserve(TTT_ROWS * TTT_COLS);
+  for (uint16_t r = 0; r < TTT_ROWS; ++r) {
+    for (uint16_t c = 0; c < TTT_COLS; ++c) {
+      if (board_[r][c] == 0) {
+        actions.push_back(TttAction{r, c});
+      }
+    }
+  }
+  return actions;
 }
 
 std::unique_ptr<const TttGameInterface> TttGame::GameAfterAction(
-    const TttAction& /*action*/) const {
-  // TODO: Produce the game state that follows the given action.
-  return nullptr;
+    const TttAction& action) const {
+  TttGame new_game = *this;
+  new_game.board_[action.row][action.col] = current_player_ ? 1 : -1;
+  new_game.current_player_ = !current_player_;
+  new_game.current_round_++;
+  return std::make_unique<TttGame>(std::move(new_game));
 }
 
 bool TttGame::IsOver() const {
-  // TODO: Determine whether the Tic Tac Toe game has ended.
-  return false;
+  return CheckGameStatus(board_) != GameStatus::ONGOING;
 }
 
-float TttGame::GetScore(const TttPlayer& /*player*/) const {
-  // TODO: Compute the final score for the provided player.
-  return 0.0f;
+float TttGame::GetScore(const TttPlayer& player) const {
+  using enum GameStatus;
+  GameStatus status = CheckGameStatus(board_);
+  if (status == ONGOING || status == DRAW) {
+    return 0.0f;
+  }
+  if ((status == WIN_PLAYER_O && !player) ||
+      (status == WIN_PLAYER_X && player)) {
+    return 1.0f;
+  }
+  return -1.0f;
 }
 
 std::string TttGame::BoardReadableString() const {
-  // TODO: Produce a human-readable representation of the board.
-  return "Board rendering not implemented";
+  std::ostringstream out;
+  const std::string row_delim =
+      "  " + std::string(4 * TTT_COLS + 1, '-') + '\n';
+  out << row_delim;
+  for (uint16_t r = 0; r < TTT_ROWS; ++r) {
+    const uint16_t row_label = static_cast<uint16_t>(TTT_ROWS - r);
+    out << row_label << " |";
+    for (uint16_t c = 0; c < TTT_COLS; ++c) {
+      out << ' ' << CellSymbol(board_[r][c]) << ' ';
+      if (c != TTT_COLS - 1) {
+        out << '|';
+      } else {
+        out << "|\n";
+      }
+    }
+    out << row_delim;
+  }
+
+  out << "    ";
+  for (uint16_t c = 0; c < TTT_COLS; ++c) {
+    out << static_cast<char>('A' + c);
+    if (c != TTT_COLS - 1) {
+      out << "   ";
+    }
+  }
+  return out.str();
 }
 
 std::expected<TttAction, std::string> TttGame::ActionFromString(
-    std::string_view /*action_str*/) const {
-  // TODO: Parse an action from its string representation.
-  return std::unexpected(std::string{"Action parsing not implemented"});
+    std::string_view action_str) const {
+  action_str = Trim(action_str);
+  if (action_str.size() != 2) {
+    return std::unexpected(
+        std::string{"Action must match pattern <column><row>, e.g. A1"});
+  }
+
+  const char col_char_raw = action_str[0];
+  const char row_char = action_str[1];
+
+  if (!std::isalpha(static_cast<unsigned char>(col_char_raw))) {
+    return std::unexpected(
+        std::string{"Column must be a letter between A and C"});
+  }
+  const char col_char =
+      static_cast<char>(std::toupper(static_cast<unsigned char>(col_char_raw)));
+  if (col_char < 'A' || col_char >= static_cast<char>('A' + TTT_COLS)) {
+    return std::unexpected(std::string{"Column must be between A and C"});
+  }
+
+  if (!std::isdigit(static_cast<unsigned char>(row_char))) {
+    return std::unexpected(std::string{"Row must be a digit between 1 and 3"});
+  }
+  const uint16_t row_number = static_cast<uint16_t>(row_char - '0');
+  if (row_number < 1 || row_number > TTT_ROWS) {
+    return std::unexpected(std::string{"Row must be between 1 and 3"});
+  }
+
+  const uint16_t col_index = static_cast<uint16_t>(col_char - 'A');
+  const uint16_t row_index = static_cast<uint16_t>(TTT_ROWS - row_number);
+
+  return TttAction{row_index, col_index};
 }
 
-std::string TttGame::ActionToString(const TttAction& /*action*/) const {
-  // TODO: Convert an action to its string representation.
-  return "Action string conversion not implemented";
+std::string TttGame::ActionToString(const TttAction& action) const {
+  if (action.row >= TTT_ROWS || action.col >= TTT_COLS) {
+    return "Invalid action";
+  }
+
+  const char col_char = static_cast<char>('A' + action.col);
+  const uint16_t row_number = static_cast<uint16_t>(TTT_ROWS - action.row);
+  return std::string{col_char} + std::to_string(row_number);
 }
 
 }  // namespace alphazero::game::api::test

@@ -23,6 +23,7 @@ class TttGame : public TttGameInterface {
  public:
   TttGame(TttPlayer starting_player = false);
   TttGame(const TttGame& other) = default;
+  TttGame(TttGame&& other) = default;
 
   ~TttGame() override = default;
 
