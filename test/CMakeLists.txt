@@ -18,10 +18,19 @@ target_include_directories(alpha-zero-api-test-lib PUBLIC
     ${PROJECT_BINARY_DIR}
 )
 
+add_library(game STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/game.cc
+)
+target_link_libraries(game PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
+target_include_directories(game PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
+)
+
 add_executable(tic-tac-toe-main
     ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/main.cc
 )
-target_link_libraries(tic-tac-toe-main PRIVATE alpha-zero-api-test-lib)
+target_link_libraries(tic-tac-toe-main PRIVATE alpha-zero-api-test-lib game)
 target_include_directories(tic-tac-toe-main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_BINARY_DIR}
