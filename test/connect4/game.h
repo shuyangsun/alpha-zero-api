@@ -5,7 +5,9 @@
 
 namespace alphazero::game::api::test {
 
-using C4Board = Standard2DBoard<4, 4>;
+constexpr uint16_t C4_ROWS = 4;
+constexpr uint16_t C4_COLS = 4;
+using C4Board = Standard2DBoard<C4_ROWS, C4_COLS>;
 using C4Action = Action2D;
 using C4Player = BinaryPlayer;
 
