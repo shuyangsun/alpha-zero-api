@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -DNDEBUG")
 find_package(AlphaZeroAPI CONFIG REQUIRED COMPONENTS api defaults)
 
 add_library(alpha-zero-api-test-lib STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/connect4/serializer.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/serializer.cc
 )
 target_link_libraries(alpha-zero-api-test-lib PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
 target_include_directories(alpha-zero-api-test-lib PUBLIC
@@ -18,11 +18,11 @@ target_include_directories(alpha-zero-api-test-lib PUBLIC
     ${PROJECT_BINARY_DIR}
 )
 
-add_executable(connect4-main
-    ${CMAKE_CURRENT_SOURCE_DIR}/connect4/main.cc
+add_executable(tic-tac-toe-main
+    ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/main.cc
 )
-target_link_libraries(connect4-main PRIVATE alpha-zero-api-test-lib)
-target_include_directories(connect4-main PRIVATE
+target_link_libraries(tic-tac-toe-main PRIVATE alpha-zero-api-test-lib)
+target_include_directories(tic-tac-toe-main PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_BINARY_DIR}
 )

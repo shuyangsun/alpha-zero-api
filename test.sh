@@ -71,5 +71,5 @@ EXIT_CODE=$?
 cd ../..
 print_test_result $EXIT_CODE -eq "tests super build"
 
-# # Clean up.
-# rm -rf "${BUILD_DIR}"
+# Clean up.
+rm -rf "${BUILD_DIR}"

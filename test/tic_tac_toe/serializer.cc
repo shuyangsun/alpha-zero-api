@@ -1,4 +1,4 @@
-#include "connect4/serializer.h"
+#include "tic_tac_toe/serializer.h"
 
 #include <array>
 #include <cstdint>
@@ -9,11 +9,11 @@
 
 namespace alphazero::game::api::test {
 
-std::vector<float> C4Serializer::Serialize(
-    const C4Board& board, const C4Player& player,
-    std::span<const C4Action> actions) const {
+std::vector<float> TttSerializer::Serialize(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions) const {
   std::vector<float> result;
-  result.reserve(C4_ROWS * C4_COLS);
+  result.reserve(TTT_ROWS * TTT_COLS);
   for (const auto& row : board) {
     for (const auto& cell : row) {
       if (player) {
