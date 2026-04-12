@@ -13,7 +13,14 @@ namespace alphazero::game::api {
 /**
  * @brief Deserializes output from the neural network to a PolicyOutput object.
  *
- * TODO: explain when to use default when to use customized.
+ * Use DefaultPolicyOutputDeserializer is for neural networks with
+ * single-precision floating point number output.
+ *
+ * Both the value and probababilities vector in the PolicyOutput object should
+ * be single-precision floating point values. The output of the neural network
+ * can range from double precision to half or even quarter precision. The
+ * deserializer should be able to handle different neural network output data
+ * types.
  *
  * @tparam B Type of board. See documentation for IGame in
  * src/include/alpha-zero-api/game.h.
