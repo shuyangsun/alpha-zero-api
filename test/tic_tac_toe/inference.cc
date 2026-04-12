@@ -1,5 +1,6 @@
 #include "inference.h"
 
+#include <cassert>
 #include <span>
 #include <tuple>
 #include <vector>
@@ -145,7 +146,35 @@ std::vector<float> TttInferenceAugmenter::Interpret(
     std::span<const std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
         augmented_games,
     std::span<const std::vector<float>> outputs) const {
-  return {0.0f, {}};  // TODO: implementation
+  assert(augmented_games.size() == outputs.size());
+
+  float values_sum = 0.0f;
+
+  const size_t output_size = outputs[0].size();
+  assert(output_size > 1);
+  std::vector<float> result(output_size - 1, 0.0f);
+
+  std::vector<std::vector<float>> probs;
+  probs.reserve(augmented_games.size());
+
+  for (size_t i = 0; i < augmented_games.size(); ++i) {
+    const auto& [board, player, actions] = augmented_games[i];
+    std::span<const float> output = outputs[i];
+    assert(output.size() == output_size);
+
+    values_sum += output[0];
+    if (i == 0) {
+      probs.emplace_back(output.begin() + 1, output.end());
+    } else if (i == 1) {
+      // TODO: convert probabilities back to the original game state action
+      // order based on the augmentation transformation.
+    } else {
+      // TODO: ...
+    }
+  }
+
+  result[0] = values_sum / augmented_games.size();
+  return result;
 }
 
 }  // namespace alphazero::game::api::test
