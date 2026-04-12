@@ -85,6 +85,7 @@ int main() {
   // final policy output for the original game state.
   std::vector<float> output =
       inference->Interpret(augmented_games, aug_outputs);
+  assert(output.size() == valid_actions.size() + 1);
 
   // Step 5: deserialize the policy output to get the value and probabilities
   // for the original game state.
