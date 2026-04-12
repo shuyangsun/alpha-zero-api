@@ -8,12 +8,13 @@
 namespace alphazero::game::api {
 
 /**
- * @brief ** DO NOT MODIFY ** PolicyOutput class is the output of the policy
- * neural network.
+ * @brief PolicyOutput class is the output of the policy neural network.
  *
- * It contains the value of the current state and the vector of
- * probabilities of selecting each action. The value and probabilities are
- * single-precision floating point values.
+ * It contains the value of the current state and the vector of probabilities of
+ * selecting each action. The value and probabilities are single-precision
+ * floating point values.
+ *
+ * Do NOT modify this class.
  */
 struct PolicyOutput {
   PolicyOutput() = delete;

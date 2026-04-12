@@ -14,6 +14,19 @@ namespace alphazero::game::api::test {
 
 namespace {
 
+static constexpr auto kRowDelim_arr = [] {
+  constexpr std::size_t len = 2 + (4 * TTT_COLS + 1) + 1;
+  std::array<char, len> arr{};
+  arr[0] = ' ';
+  arr[1] = ' ';
+  for (std::size_t i = 2; i < len - 1; ++i) arr[i] = '-';
+  arr[len - 1] = '\n';
+  return arr;
+}();
+
+constexpr std::string_view kRowDelim{kRowDelim_arr.data(),
+                                     kRowDelim_arr.size()};
+
 std::string_view Trim(std::string_view input) {
   while (!input.empty() &&
          std::isspace(static_cast<unsigned char>(input.front()))) {
@@ -158,9 +171,7 @@ float TttGame::GetScore(const TttPlayer& player) const {
 
 std::string TttGame::BoardReadableString() const {
   std::ostringstream out;
-  const std::string row_delim =
-      "  " + std::string(4 * TTT_COLS + 1, '-') + '\n';
-  out << row_delim;
+  out << kRowDelim;
   for (uint16_t r = 0; r < TTT_ROWS; ++r) {
     const uint16_t row_label = static_cast<uint16_t>(TTT_ROWS - r);
     out << row_label << " |";
@@ -172,7 +183,7 @@ std::string TttGame::BoardReadableString() const {
         out << "|\n";
       }
     }
-    out << row_delim;
+    out << kRowDelim;
   }
 
   out << "    ";
@@ -226,8 +237,9 @@ std::string TttGame::ActionToString(const TttAction& action) const {
   }
 
   const char col_char = static_cast<char>('A' + action.col);
-  const uint16_t row_number = static_cast<uint16_t>(TTT_ROWS - action.row);
-  return std::string{col_char} + std::to_string(row_number);
+  std::stringstream ss;
+  ss << col_char << std::to_string(TTT_ROWS - action.row);
+  return ss.str();
 }
 
 }  // namespace alphazero::game::api::test

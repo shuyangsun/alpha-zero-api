@@ -11,9 +11,9 @@ class DefaultPolicyOutputSerializer : public IPolicyOutputSerializer<B, A, P> {
   DefaultPolicyOutputSerializer() = default;
   ~DefaultPolicyOutputSerializer() override = default;
 
-  std::vector<float> Serialize(const B& board, const P& player,
-                               std::span<const A> actions,
-                               const PolicyOutput& output) const final {
+  std::vector<float> SerializePolicyOutput(
+      const B& board, const P& player, std::span<const A> actions,
+      const PolicyOutput& output) const final {
     std::vector<float> result;
     result.reserve(output.probabilities.size() + 1);
     result.emplace_back(output.value);

@@ -29,9 +29,11 @@ class IGameSerializer {
 
   /**
    * @brief Serializes the given game state to a vector of floats as the neural
-   * network input. The input format should at least include the current board
-   * state, maybe current player or available actions as well. The input format
-   * is a very subjective design decision implementations need to make.
+   * network input.
+   *
+   * The input format should at least include the current board state, maybe
+   * current player or available actions as well. The input format * is a very
+   * subjective design decision implementations need to make.
    *
    * The returned vector should be of fixed size, because it will be used for
    * the neural network input.
@@ -41,8 +43,8 @@ class IGameSerializer {
    * @return std::vector<float> Serialized neural network input as a vector of
    * floats.
    */
-  virtual std::vector<float> Serialize(const B& board, const P& player,
-                                       std::span<const A> actions) const = 0;
+  virtual std::vector<float> SerializeCurrentState(
+      const B& board, const P& player, std::span<const A> actions) const = 0;
 };
 
 template <typename B, typename A, typename P>
@@ -61,9 +63,9 @@ class IPolicyOutputSerializer {
    * @return std::vector<float> Serialized PolicyOutput object as a vector of
    * single-precision floats.
    */
-  virtual std::vector<float> Serialize(const B& board, const P& player,
-                                       std::span<const A> actions,
-                                       const PolicyOutput& output) const = 0;
+  virtual std::vector<float> SerializePolicyOutput(
+      const B& board, const P& player, std::span<const A> actions,
+      const PolicyOutput& output) const = 0;
 };
 
 }  // namespace alphazero::game::api

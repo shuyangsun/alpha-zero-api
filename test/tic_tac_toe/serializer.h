@@ -16,8 +16,9 @@ class TttSerializer : public IGameSerializer<TttBoard, TttAction, TttPlayer> {
   TttSerializer() = default;
   ~TttSerializer() override = default;
 
-  std::vector<float> Serialize(const TttBoard& board, const TttPlayer& player,
-                               std::span<const TttAction> actions) const final;
+  std::vector<float> SerializeCurrentState(
+      const TttBoard& board, const TttPlayer& player,
+      std::span<const TttAction> actions) const final;
 };
 
 }  // namespace alphazero::game::api::test

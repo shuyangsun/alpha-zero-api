@@ -24,10 +24,17 @@ int main() {
   DefaultPolicyOutputDeserializer<TttBoard, TttAction, TttPlayer>
       po_deserializer;
 
-  auto game = std::make_unique<TttGame>()
-                  ->GameAfterAction(TttAction{1, 1})
-                  ->GameAfterAction(TttAction{0, 1})
-                  ->GameAfterAction(TttAction{2, 0});
+  const auto game = std::make_unique<TttGame>()
+                        ->GameAfterAction(TttAction{1, 1})
+                        ->GameAfterAction(TttAction{0, 1})
+                        ->GameAfterAction(TttAction{2, 0});
   std::cout << "Current board:\n" << game->BoardReadableString() << "\n";
+  std::cout << "Serialied state vector length: "
+            << serializer
+                   .SerializeCurrentState(game->GetBoard(),
+                                          game->CurrentPlayer(),
+                                          game->ValidActions())
+                   .size()
+            << std::endl;
   return 0;
 }
