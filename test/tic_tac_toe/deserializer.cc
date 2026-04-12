@@ -20,6 +20,7 @@ std::expected<PolicyOutput, std::string> TttDeserializer::Deserialize(
     const size_t index = action.row * TTT_COLS + action.col;
     probs.emplace_back(output[index + 1]);
   }
+  // TODO: should we use softmax to ensure probabilities sum to 1?
   return PolicyOutput{output.front(), std::move(probs)};
 }
 

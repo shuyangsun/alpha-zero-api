@@ -152,7 +152,7 @@ std::vector<float> TttInferenceAugmenter::Interpret(
 
   const size_t output_size = outputs[0].size();
   assert(output_size > 1);
-  std::vector<float> result(output_size - 1, 0.0f);
+  std::vector<float> result(output_size, 0.0f);
 
   std::vector<std::vector<float>> probs;
   probs.reserve(augmented_games.size());

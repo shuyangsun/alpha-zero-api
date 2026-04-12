@@ -23,4 +23,17 @@ std::vector<float> TttSerializer::SerializeCurrentState(
   return result;
 }
 
+std::vector<float> TttSerializer::SerializePolicyOutput(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions, const PolicyOutput& output) const {
+  std::vector<float> result(TTT_COLS * TTT_ROWS + 1, 0.0f);
+  result[0] = output.value;
+  for (size_t i = 0; i < actions.size(); ++i) {
+    const TttAction& action = actions[i];
+    const size_t index = action.row * TTT_COLS + action.col;
+    result[index + 1] = output.probabilities[i];
+  }
+  return result;
+}
+
 }  // namespace alphazero::game::api::test

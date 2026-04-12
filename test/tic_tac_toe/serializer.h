@@ -14,7 +14,7 @@ namespace alphazero::game::api::test {
 
 class TttSerializer
     : public IGameSerializer<TttBoard, TttAction, TttPlayer>,
-      public DefaultPolicyOutputSerializer<TttBoard, TttAction, TttPlayer> {
+      public IPolicyOutputSerializer<TttBoard, TttAction, TttPlayer> {
  public:
   TttSerializer() = default;
   ~TttSerializer() override = default;
@@ -22,6 +22,11 @@ class TttSerializer
   std::vector<float> SerializeCurrentState(
       const TttBoard& board, const TttPlayer& player,
       std::span<const TttAction> actions) const final;
+
+  std::vector<float> SerializePolicyOutput(
+      const TttBoard& board, const TttPlayer& player,
+      std::span<const TttAction> actions,
+      const PolicyOutput& output) const final;
 };
 
 }  // namespace alphazero::game::api::test
