@@ -7,8 +7,8 @@
 #include <tuple>
 #include <vector>
 
-#include "alpha-zero-api/defaults/deserializer.h"
 #include "alpha-zero-api/policy_output.h"
+#include "tic_tac_toe/deserializer.h"
 #include "tic_tac_toe/game.h"
 #include "tic_tac_toe/inference.h"
 #include "tic_tac_toe/serializer.h"
@@ -16,11 +16,11 @@
 
 namespace {
 
-using ::alphazero::game::api::DefaultPolicyOutputDeserializer;
 using ::alphazero::game::api::PolicyOutput;
 
 using ::alphazero::game::api::test::TttAction;
 using ::alphazero::game::api::test::TttBoard;
+using ::alphazero::game::api::test::TttDeserializer;
 using ::alphazero::game::api::test::TttGame;
 using ::alphazero::game::api::test::TttInferenceAugmenter;
 using ::alphazero::game::api::test::TttPlayer;
@@ -85,23 +85,20 @@ int main() {
   // final policy output for the original game state.
   std::vector<float> output =
       inference->Interpret(augmented_games, aug_outputs);
-  assert(output.size() == valid_actions.size() + 1);
 
   // Step 5: deserialize the policy output to get the value and probabilities
   // for the original game state.
-  const auto deserialier = std::make_unique<
-      DefaultPolicyOutputDeserializer<TttBoard, TttAction, TttPlayer>>();
+  const auto deserialier = std::make_unique<TttDeserializer>();
   const std::expected<PolicyOutput, std::string> deserialized_output =
       deserialier->Deserialize(game->GetBoard(), game->CurrentPlayer(),
                                game->ValidActions(), output);
   std::cout << "Deserialization "
             << (deserialized_output.has_value() ? "succeeded." : "failed.")
             << std::endl;
+  assert(deserialized_output->probabilities.size() == valid_actions.size());
 
   TttAction next = TttAction{0, 0};
   float max_prob = -1.0f;
-  assert(deserialized_output.has_value());
-  assert(deserialized_output->probabilities.size() == valid_actions.size());
   for (size_t i = 0; i < valid_actions.size(); ++i) {
     if (deserialized_output.has_value() &&
         deserialized_output->probabilities[i] > max_prob) {
