@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-project(AlphaZeroAPI
-    VERSION 0.0.1
-    LANGUAGES CXX
-)
+project(
+  AlphaZeroAPI
+  VERSION 0.0.1
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 23)
