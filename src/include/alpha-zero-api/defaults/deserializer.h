@@ -1,13 +1,15 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_DESERIALIZER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_DESERIALIZER_H_
 
+#include <string>
+
 #include "alpha-zero-api/deserializer.h"
 
 namespace alphazero::game::api {
 
 template <typename B, typename A, typename P>
 class DefaultPolicyOutputDeserializer
-    : public IPolicyOutputDeserializer<B, A, P> {
+    : public IPolicyOutputDeserializer<B, A, P, std::string> {
  public:
   DefaultPolicyOutputDeserializer() = default;
   ~DefaultPolicyOutputDeserializer() override = default;

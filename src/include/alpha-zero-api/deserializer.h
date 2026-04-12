@@ -21,8 +21,9 @@ namespace alphazero::game::api {
  * src/include/alpha-zero-api/game.h.
  * @tparam P Type of player. See documentation for IGame in
  * src/include/alpha-zero-api/game.h.
+ * @tparam E Type of error message when deserialization fails.
  */
-template <typename B, typename A, typename P>
+template <typename B, typename A, typename P, typename E>
 class IPolicyOutputDeserializer {
  public:
   virtual ~IPolicyOutputDeserializer() = default;
@@ -38,10 +39,10 @@ class IPolicyOutputDeserializer {
    * @param actions Actions passed in to the serializer to generated the neural
    * network input that was used to generate this output.
    * @param output Output of the neural network.
-   * @return std::expected<PolicyOutput, std::string> PolicyOutput object if the
-   * deserialization is successful, error message otherwise.
+   * @return std::expected<PolicyOutput, E> PolicyOutput object if the
+   * deserialization is successful, error type otherwise.
    */
-  virtual std::expected<PolicyOutput, std::string> Deserialize(
+  virtual std::expected<PolicyOutput, E> Deserialize(
       const B& board, const P& player, std::span<const A> actions,
       std::span<const float> output) const = 0;
 };
