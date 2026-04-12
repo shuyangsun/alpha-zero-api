@@ -49,8 +49,8 @@ TttAction RotateCounterclockwise(const TttAction& action, size_t times) {
   times = times % 4;
   switch (times) {
     case 1:
-      return TttAction{static_cast<uint16_t>(action.col),
-                       static_cast<uint16_t>(TTT_ROWS - 1 - action.row)};
+      return TttAction{static_cast<uint16_t>(TTT_COLS - 1 - action.col),
+                       static_cast<uint16_t>(action.row)};
     case 2:
       return TttAction{static_cast<uint16_t>(TTT_ROWS - 1 - action.row),
                        static_cast<uint16_t>(TTT_COLS - 1 - action.col)};
@@ -289,17 +289,6 @@ PolicyOutput TttInferenceAugmenter::Interpret(
           original_action =
               MirrorVertical(RotateCounterclockwise(original_action, 3));
           break;
-      }
-
-      if (action_index_map.find(original_action.row * TTT_COLS +
-                                original_action.col) ==
-          action_index_map.end()) {
-        std::cout << "Error: original action not found in action index map. "
-                  << "Original action: (" << original_action.row << ", "
-                  << original_action.col << "), augmentation: ("
-                  << actions.at(i).row << ", " << actions.at(i).col
-                  << "), augmentation type: " << static_cast<int>(key)
-                  << std::endl;
       }
       assert(action_index_map.find(original_action.row * TTT_COLS +
                                    original_action.col) !=
