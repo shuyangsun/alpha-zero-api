@@ -1,6 +1,9 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_GAME_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_GAME_H_
 
+#include <array>
+#include <vector>
+
 #include "alpha-zero-api/game.h"
 
 namespace alphazero::game::api {

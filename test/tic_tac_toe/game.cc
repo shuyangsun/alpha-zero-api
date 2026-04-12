@@ -1,5 +1,6 @@
 #include "tic_tac_toe/game.h"
 
+#include <array>
 #include <cctype>
 #include <cstdint>
 #include <expected>
