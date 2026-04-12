@@ -27,9 +27,7 @@ class IInferenceAugmenter {
    *
    * The function parameters are the same as Serializer<B, A, P>::Serialize.
    * This is usually used to minimize the bias of the neural network. In the
-   * original AlphaGo Zero paper, each position is augmented 8 times. The order
-   * of returned augmented games should be deterministic, so it can be properly
-   * interpreted later.
+   * original AlphaGo Zero paper, each position is augmented 8 times.
    *
    * @param board Current game board.
    * @param player Current player.
@@ -45,12 +43,16 @@ class IInferenceAugmenter {
    * games. The order of the outputs corresponds to the order of augmented
    * games.
    *
+   * @param augmented_games The augmented games generated from the Augment
+   * function.
    * @param outputs Policy outputs from the neural network for each augmented
    * game.
-   * @return PolicyOutput Consolidated policy output from all outputs.
+   * @return std::vector<float> Interpreted policy output vector for the
+   * original game.
    */
-  virtual PolicyOutput InterpretPolicyOutputs(
-      std::span<const PolicyOutput> outputs) const = 0;
+  virtual std::vector<float> Interpret(
+      std::span<const std::tuple<B, P, std::vector<A>>> augmented_games,
+      std::span<const std::vector<float>> outputs) const = 0;
 
   virtual ~IInferenceAugmenter() = default;
 };
