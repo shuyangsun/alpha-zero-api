@@ -12,7 +12,7 @@
 namespace alphazero::game::api {
 
 /**
- * @brief Augment the game before inference or sample data for training.
+ * @brief Augment the game before inference to reduce model bias.
  *
  * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
  * @tparam A Type of a single action. See documentation for IGame in
@@ -20,7 +20,7 @@ namespace alphazero::game::api {
  * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
  */
 template <typename B, typename A, typename P>
-class IAugmenter {
+class IInferenceAugmenter {
  public:
   /**
    * @brief Augment the game state for inference.
@@ -37,7 +37,7 @@ class IAugmenter {
    * @return std::vector<std::tuple<B, P, std::vector<A>>> Vector of augmented
    * board, player and valid actions.
    */
-  virtual std::vector<std::tuple<B, P, std::vector<A>>> AugmentInferenceData(
+  virtual std::vector<std::tuple<B, P, std::vector<A>>> Augment(
       const B& board, const P& player, std::span<const A> actions) const = 0;
 
   /**
@@ -52,22 +52,36 @@ class IAugmenter {
   virtual PolicyOutput InterpretPolicyOutputs(
       std::span<const PolicyOutput> outputs) const = 0;
 
+  virtual ~IInferenceAugmenter() = default;
+};
+
+/**
+ * @brief Augment the game state and policy output for training.
+ *
+ * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
+ * @tparam A Type of a single action. See documentation for IGame in
+ * api/cpp/game.h.
+ * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
+ */
+template <typename B, typename A, typename P>
+class ITrainingAugmenter {
+ public:
   /**
    * @brief Augment the game state and policy output for training.
    *
-   * TODO: change to augment board, player and actions.
-   *
-   * @param game
-   * @param output
+   * @param board Current game board.
+   * @param player Current player.
+   * @param actions Valid actions for current player.
+   * @param output Policy output for the current game state.
    * @return std::vector<
-   * std::pair<std::shared_ptr<const IGame<B, A, P>>, PolicyOutput>>
+   * std::pair<std::shared_ptr<const IGame<B, A, P>>, PolicyOutput>> Vector of
+   * augmented game and policy output pairs.
    */
-  virtual std::vector<std::tuple<B, P, std::vector<A>, PolicyOutput>>
-  AugmentTrainingData(const B& board, const P& player,
-                      std::span<const A> actions,
-                      PolicyOutput&& output) const = 0;
+  virtual std::vector<std::tuple<B, P, std::vector<A>, PolicyOutput>> Augment(
+      const B& board, const P& player, std::span<const A> actions,
+      PolicyOutput&& output) const = 0;
 
-  virtual ~IAugmenter() = default;
+  virtual ~ITrainingAugmenter() = default;
 };
 
 }  // namespace alphazero::game::api
