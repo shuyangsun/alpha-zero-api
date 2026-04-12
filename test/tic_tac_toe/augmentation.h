@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <span>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include "game.h"
@@ -41,6 +42,14 @@ std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
 std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
     const TttBoard& board, const TttPlayer& player,
     std::span<const TttAction> actions);
+
+// Applies all 12 augmentations (original, 3 rotations, mirror-H,
+// mirror-H + 3 rotations, mirror-V, mirror-V + 3 rotations).
+// Keys are Augmentation enum values cast to uint8_t.
+std::unordered_map<uint8_t,
+                   std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
+AugmentAll(const TttBoard& board, const TttPlayer& player,
+           std::span<const TttAction> actions);
 
 }  // namespace alphazero::game::api::test::internal
 

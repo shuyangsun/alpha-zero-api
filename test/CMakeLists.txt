@@ -30,7 +30,7 @@ target_link_libraries(inference PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults 
 target_include_directories(inference PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 add_library(train STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/train.cc)
-target_link_libraries(train PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
+target_link_libraries(train PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults augmentation)
 target_include_directories(train PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 add_executable(tic-tac-toe-main ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/main.cc)

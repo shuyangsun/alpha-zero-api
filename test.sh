@@ -71,5 +71,11 @@ EXIT_CODE=$?
 cd ../..
 print_test_result $EXIT_CODE -eq "tests super build"
 
+set +e
+./build/build-tests/alpha-zero-api-tests/tic-tac-toe-main
+EXIT_CODE=$?
+set -e
+print_test_result $EXIT_CODE -eq "tests super build binary"
+
 # Clean up.
-# rm -rf "${BUILD_DIR}"
+rm -rf "${BUILD_DIR}"
