@@ -1,0 +1,47 @@
+#ifndef ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_
+#define ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_
+
+#include <cstdint>
+#include <span>
+#include <tuple>
+#include <vector>
+
+#include "game.h"
+
+namespace alphazero::game::api::test::internal {
+
+enum class Augmentation : uint8_t {
+  kOriginal = 0,
+  kRotate90,
+  kRotate180,
+  kRotate270,
+  kMirrorHorizontal,
+  kMirrorHorizontalRotate90,
+  kMirrorHorizontalRotate180,
+  kMirrorHorizontalRotate270,
+  kMirrorVertical,
+  kMirrorVerticalRotate90,
+  kMirrorVerticalRotate180,
+  kMirrorVerticalRotate270
+};
+
+TttAction MirrorHorizontal(const TttAction& action);
+TttAction MirrorVertical(const TttAction& action);
+TttAction RotateClockwise(const TttAction& action);
+TttAction RotateCounterclockwise(const TttAction& action, size_t times);
+
+std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorHorizontal(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions);
+
+std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions);
+
+std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions);
+
+}  // namespace alphazero::game::api::test::internal
+
+#endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_

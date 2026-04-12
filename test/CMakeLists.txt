@@ -21,8 +21,12 @@ add_library(deserializer STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/deserial
 target_link_libraries(deserializer PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
 target_include_directories(deserializer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
+add_library(augmentation STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/augmentation.cc)
+target_link_libraries(augmentation PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults game)
+target_include_directories(augmentation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
 add_library(inference STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/inference.cc)
-target_link_libraries(inference PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
+target_link_libraries(inference PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults augmentation)
 target_include_directories(inference PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 add_library(train STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/train.cc)
