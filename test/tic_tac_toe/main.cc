@@ -1,10 +1,12 @@
 #include <cassert>
+#include <cstdint>
 #include <expected>
 #include <iostream>
 #include <memory>
 #include <span>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include "alpha-zero-api/policy_output.h"
@@ -39,7 +41,8 @@ int main() {
   // Step 1 (optional): augment game state for inference.
   std::vector<TttAction> valid_actions = game->ValidActions();
   const auto inference = std::make_unique<TttInferenceAugmenter>();
-  std::vector<std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
+  std::unordered_map<uint8_t,
+                     std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
       augmented_games = inference->Augment(
           game->GetBoard(), game->CurrentPlayer(), valid_actions);
   if (augmented_games.empty()) {
@@ -54,7 +57,8 @@ int main() {
   std::vector<std::vector<float>> augmented_game_states;
   augmented_game_states.reserve(augmented_games.size());
   const auto serializer = std::make_unique<TttSerializer>();
-  for (const auto& [board, player, actions] : augmented_games) {
+  for (const auto& [key, value] : augmented_games) {
+    const auto& [board, player, actions] = value;
     augmented_game_states.emplace_back(
         serializer->SerializeCurrentState(board, player, actions));
     if (augmented_game_states.size() > 1 &&
@@ -70,40 +74,43 @@ int main() {
             << augmented_game_states.front().size() << std::endl;
 
   // Step 3: simulate one round of MCTS.
-  std::vector<std::vector<float>> aug_outputs;
-  for (const auto& [board, player, actions] : augmented_games) {
+  std::unordered_map<uint8_t, std::vector<float>> aug_outputs;
+  for (const auto& [key, value] : augmented_games) {
+    const auto& [board, player, actions] = value;
     const PolicyOutput output{
         0.5f, std::vector<float>(actions.size(), 1.0f / actions.size())};
     const std::vector<float> output_vec =
         serializer->SerializePolicyOutput(board, player, actions, output);
-    aug_outputs.emplace_back(output_vec);
+    aug_outputs.emplace(key, output_vec);
   }
   std::cout << "Serialied policy output vector length: "
-            << aug_outputs.front().size() << std::endl;
+            << aug_outputs.begin()->second.size() << std::endl;
 
-  // Step 4: interpret multiple policy outputs from augmented games to get the
-  // final policy output for the original game state.
-  std::vector<float> output =
-      inference->Interpret(augmented_games, aug_outputs);
-
-  // Step 5: deserialize the policy output to get the value and probabilities
+  // Step 4: deserialize the policy output to get the value and probabilities
   // for the original game state.
-  const auto deserialier = std::make_unique<TttDeserializer>();
-  const std::expected<PolicyOutput, std::string> deserialized_output =
-      deserialier->Deserialize(game->GetBoard(), game->CurrentPlayer(),
-                               game->ValidActions(), output);
-  std::cout << "Deserialization "
-            << (deserialized_output.has_value() ? "succeeded." : "failed.")
-            << std::endl;
-  assert(deserialized_output->probabilities.size() == valid_actions.size());
+  std::unordered_map<uint8_t, PolicyOutput> deserialized_aug_outputs;
+  deserialized_aug_outputs.reserve(aug_outputs.size());
+  for (const auto& [key, value] : aug_outputs) {
+    const auto deserialier = std::make_unique<TttDeserializer>();
+    const std::expected<PolicyOutput, std::string> deserialized_output =
+        deserialier->Deserialize(game->GetBoard(), game->CurrentPlayer(),
+                                 game->ValidActions(), value);
+    assert(deserialized_output.has_value());
+    assert(deserialized_output->probabilities.size() == valid_actions.size());
+    deserialized_aug_outputs.emplace(key, *deserialized_output);
+  }
+
+  // Step 5: interpret multiple policy outputs from augmented games to get the
+  // final policy output for the original game state.
+  PolicyOutput output =
+      inference->Interpret(augmented_games, deserialized_aug_outputs);
 
   TttAction next = TttAction{0, 0};
   float max_prob = -1.0f;
   for (size_t i = 0; i < valid_actions.size(); ++i) {
-    if (deserialized_output.has_value() &&
-        deserialized_output->probabilities[i] > max_prob) {
+    if (output.probabilities[i] > max_prob) {
       next = valid_actions[i];
-      max_prob = deserialized_output->probabilities[i];
+      max_prob = output.probabilities[i];
     }
   }
 

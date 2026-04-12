@@ -1,9 +1,11 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_AUGMENTER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_AUGMENTER_H_
 
+#include <cstdint>
 #include <memory>
 #include <span>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include "alpha-zero-api/game.h"
@@ -32,10 +34,12 @@ class IInferenceAugmenter {
    * @param board Current game board.
    * @param player Current player.
    * @param actions Valid actions for current player.
-   * @return std::vector<std::tuple<B, P, std::vector<A>>> Vector of augmented
-   * board, player and valid actions.
+   * @return std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>> Map
+   * of augmented game state. The key is an identifier for the augmented game
+   * state, and the value is a tuple of the augmented board, player, and
+   * actions.
    */
-  virtual std::vector<std::tuple<B, P, std::vector<A>>> Augment(
+  virtual std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>> Augment(
       const B& board, const P& player, std::span<const A> actions) const = 0;
 
   /**
@@ -43,16 +47,17 @@ class IInferenceAugmenter {
    * games. The order of the outputs corresponds to the order of augmented
    * games.
    *
-   * @param augmented_games The augmented games generated from the Augment
-   * function.
-   * @param outputs Policy outputs from the neural network for each augmented
-   * game.
-   * @return std::vector<float> Interpreted policy output vector for the
-   * original game.
+   * @param augmented_games The augmented game states that were generated from
+   * the Augment function.
+   * @param outputs The policy outputs for each augmented game. The key is the
+   * identifier for the augmented game, and the value is the policy output for
+   * that augmented game.
+   * @return PolicyOutput Interpreted policy output for the original game.
    */
-  virtual std::vector<float> Interpret(
-      std::span<const std::tuple<B, P, std::vector<A>>> augmented_games,
-      std::span<const std::vector<float>> outputs) const = 0;
+  virtual PolicyOutput Interpret(
+      const std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>>&
+          augmented_games,
+      const std::unordered_map<uint8_t, PolicyOutput>& outputs) const = 0;
 
   virtual ~IInferenceAugmenter() = default;
 };
