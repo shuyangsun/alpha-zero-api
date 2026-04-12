@@ -17,6 +17,10 @@ add_library(serializer STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/serializer
 target_link_libraries(serializer PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
 target_include_directories(serializer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
+add_library(deserializer STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/deserializer.cc)
+target_link_libraries(deserializer PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
+target_include_directories(deserializer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
 add_library(inference STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/inference.cc)
 target_link_libraries(inference PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
 target_include_directories(inference PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
@@ -26,6 +30,6 @@ target_link_libraries(train PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
 target_include_directories(train PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
 
 add_executable(tic-tac-toe-main ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/main.cc)
-target_link_libraries(tic-tac-toe-main PRIVATE serializer inference train game)
+target_link_libraries(tic-tac-toe-main PRIVATE serializer deserializer inference train game)
 target_include_directories(tic-tac-toe-main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
                                                     ${PROJECT_BINARY_DIR})
