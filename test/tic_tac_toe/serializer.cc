@@ -13,12 +13,11 @@ std::vector<float> TttSerializer::SerializeCurrentState(
     const TttBoard& board, const TttPlayer& player,
     std::span<const TttAction> actions) const {
   std::vector<float> result;
-  result.reserve(TTT_ROWS * TTT_COLS + 1);
-  result.emplace_back(player ? 1.0f : 0.0f);
+  result.reserve(TTT_ROWS * TTT_COLS);
   for (const auto& row : board) {
     for (const auto& cell : row) {
       // Flip color if player 1.
-      result.push_back(static_cast<float>(player ? -cell : cell));
+      result.emplace_back(static_cast<float>(player ? -cell : cell));
     }
   }
   return result;

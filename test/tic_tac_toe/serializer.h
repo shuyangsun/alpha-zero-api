@@ -6,12 +6,15 @@
 #include <span>
 #include <vector>
 
+#include "alpha-zero-api/defaults/serializer.h"
 #include "alpha-zero-api/serializer.h"
 #include "game.h"
 
 namespace alphazero::game::api::test {
 
-class TttSerializer : public IGameSerializer<TttBoard, TttAction, TttPlayer> {
+class TttSerializer
+    : public IGameSerializer<TttBoard, TttAction, TttPlayer>,
+      public DefaultPolicyOutputSerializer<TttBoard, TttAction, TttPlayer> {
  public:
   TttSerializer() = default;
   ~TttSerializer() override = default;
