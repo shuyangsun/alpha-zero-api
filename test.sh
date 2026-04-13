@@ -66,16 +66,16 @@ cd ../..
 print_test_result $EXIT_CODE -eq "defaults"
 
 rm -rf "${BUILD_DIR}" && mkdir -p "${BUILD_DIR}" && cd "${BUILD_DIR}"
-cmake -G Ninja ../../test/cmake_externalproject &&  cmake --build .
+cmake -G Ninja ../../test &&  cmake --build .
 EXIT_CODE=$?
 cd ../..
-print_test_result $EXIT_CODE -eq "tests super build"
+print_test_result $EXIT_CODE -eq "tests fetch content"
 
 set +e
-./build/build-tests/alpha-zero-api-tests/tic-tac-toe-main
+./build/build-tests/tic-tac-toe-main
 EXIT_CODE=$?
 set -e
-print_test_result $EXIT_CODE -eq "tests super build binary"
+print_test_result $EXIT_CODE -eq "tests fetch content binary"
 
 # Clean up.
 rm -rf "${BUILD_DIR}"

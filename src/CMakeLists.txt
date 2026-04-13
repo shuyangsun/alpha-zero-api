@@ -14,8 +14,12 @@ option(DEFAULTS "Build with default implementations for serializer and deseriali
 configure_file(include/alpha-zero-api/configuration.h.in include/alpha-zero-api/configuration.h)
 
 add_library(api INTERFACE)
-target_include_directories(api INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-                                         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
+add_library(AlphaZeroAPI::api ALIAS api)
+target_include_directories(
+  api
+  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+            $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
 install(
   TARGETS api
   EXPORT AlphaZeroAPITargets
@@ -38,9 +42,12 @@ install(
 
 if(DEFAULTS)
   add_library(defaults INTERFACE)
+  add_library(AlphaZeroAPI::defaults ALIAS defaults)
   target_include_directories(
-    defaults INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-                       $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
+    defaults
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+              $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+              $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
   install(
     TARGETS defaults
     EXPORT AlphaZeroAPITargets

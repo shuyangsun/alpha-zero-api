@@ -7,7 +7,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -DNDEBUG")
 
-find_package(AlphaZeroAPI CONFIG REQUIRED COMPONENTS api defaults)
+include(FetchContent)
+
+set(DEFAULTS
+    ON
+    CACHE BOOL "" FORCE)
+
+FetchContent_Declare(AlphaZeroAPI SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+FetchContent_MakeAvailable(AlphaZeroAPI)
 
 add_library(game STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tic_tac_toe/game.cc)
 target_link_libraries(game PUBLIC AlphaZeroAPI::api AlphaZeroAPI::defaults)
