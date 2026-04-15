@@ -4,6 +4,8 @@
 
 A C++23 header-only library that defines the game interfaces needed for an [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero) implementation. Implement these interfaces for your board game, and the AlphaZero engine handles the rest (MCTS, self-play, training loop).
 
+Generate implementation template from [shuyangsun/alpha-zero-game](https://github.com/shuyangsun/alpha-zero-game).
+
 ## Requirements
 
 - C++23 compiler (GCC 14+, Clang 18+, MSVC 19.38+)
