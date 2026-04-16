@@ -167,10 +167,43 @@ class TttGame : public TttGameInterface {
   std::unique_ptr<const TttGameInterface> GameAfterAction(
       const TttAction& action) const final;
 
-  // String conversions
+  // --------------------------- String Conversions ----------------------------
+
+  /**
+   * @brief Human-readable string to represent the current board state during
+   * gameplay in terminal or for debugging.
+   *
+   * This is the most basic form of user interface for the game, should be easy
+   * to understand for both human and LLM players. LLM agents may choose to run
+   * the main binary in the terminal to debug game implementation.
+   *
+   * @return std::string A human-readable string representing the current board
+   * state.
+   */
   std::string BoardReadableString() const final;
+
+  /**
+   * @brief Convert a human-readable string to an action.
+   *
+   * May be used by a human player or an LLM agent to play the game in the
+   * terminal.
+   *
+   * @param action_str The string representing the action.
+   * @return std::expected<TttAction, std::string> The action if the string is
+   * valid, or an error message if the string is invalid.
+   */
   std::expected<TttAction, std::string> ActionFromString(
       std::string_view action_str) const final;
+
+  /**
+   * @brief Convert an action to a human-readable string.
+   *
+   * Used to display past actions or available actions to human players or LLM
+   * agents in the terminal.
+   *
+   * @param action The action to be converted to string.
+   * @return std::string A human-readable string representing the action.
+   */
   std::string ActionToString(const TttAction& action) const final;
 
  private:
