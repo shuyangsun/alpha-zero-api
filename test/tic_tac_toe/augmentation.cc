@@ -9,7 +9,7 @@
 
 #include "game.h"
 
-namespace alphazero::game::api::test::internal {
+namespace az::game::api::test::internal {
 
 TttAction MirrorHorizontal(const TttAction& action) {
   return TttAction{action.row,
@@ -187,4 +187,4 @@ AugmentAll(const TttBoard& board, const TttPlayer& player,
   return result;
 }
 
-}  // namespace alphazero::game::api::test::internal
+}  // namespace az::game::api::test::internal

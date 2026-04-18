@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 /**
  * @brief PolicyOutput class is the output of the policy neural network.
@@ -79,6 +79,6 @@ struct PolicyOutput {
   std::vector<float> probabilities;
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_POLICY_OUTPUT_H_

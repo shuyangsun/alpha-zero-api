@@ -10,7 +10,7 @@
 #include "alpha-zero-api/serializer.h"
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 class TttSerializer
     : public IGameSerializer<TttBoard, TttAction, TttPlayer>,
@@ -29,6 +29,6 @@ class TttSerializer
       const PolicyOutput& output) const final;
 };
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test
 
 #endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_SERIALIZER_H_

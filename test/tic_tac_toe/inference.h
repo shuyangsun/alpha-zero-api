@@ -11,7 +11,7 @@
 #include "alpha-zero-api/policy_output.h"
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 class TttInferenceAugmenter
     : public IInferenceAugmenter<TttBoard, TttAction, TttPlayer> {
@@ -31,6 +31,6 @@ class TttInferenceAugmenter
       const std::unordered_map<uint8_t, PolicyOutput>& outputs) const final;
 };
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test
 
 #endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_INFERENCE_H_

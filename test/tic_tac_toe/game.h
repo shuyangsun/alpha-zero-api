@@ -10,7 +10,7 @@
 
 #include "alpha-zero-api/defaults/game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 constexpr uint16_t TTT_ROWS = 3;
 constexpr uint16_t TTT_COLS = 3;
@@ -213,6 +213,6 @@ class TttGame : public TttGameInterface {
   std::optional<TttAction> last_action_ = std::nullopt;
 };
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test
 
 #endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_GAME_H_

@@ -9,7 +9,7 @@
 #include "alpha-zero-api/game.h"
 #include "alpha-zero-api/policy_output.h"
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 /**
  * @brief ISerializer is an interface for serializing a particular game state to
@@ -68,6 +68,6 @@ class IPolicyOutputSerializer {
       const PolicyOutput& output) const = 0;
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_SERIALIZER_H_

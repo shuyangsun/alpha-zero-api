@@ -11,7 +11,7 @@
 #include <string_view>
 #include <vector>
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 namespace {
 
@@ -243,4 +243,4 @@ std::string TttGame::ActionToString(const TttAction& action) const {
   return ss.str();
 }
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test

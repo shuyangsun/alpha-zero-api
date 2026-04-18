@@ -82,7 +82,7 @@ cmake --build .
 
 ## Core Interfaces
 
-All interfaces live in namespace `alphazero::game::api` and are templated on three types:
+All interfaces live in namespace `::az::game::api` and are templated on three types:
 
 | Template Parameter | Meaning       | Example                                |
 | ------------------ | ------------- | -------------------------------------- |

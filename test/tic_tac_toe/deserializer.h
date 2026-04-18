@@ -9,7 +9,7 @@
 #include "alpha-zero-api/policy_output.h"
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 class TttDeserializer
     : public IPolicyOutputDeserializer<TttBoard, TttAction, TttPlayer,
@@ -24,6 +24,6 @@ class TttDeserializer
       std::span<const float> output) const final;
 };
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test
 
 #endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_DESERIALIZER_H_

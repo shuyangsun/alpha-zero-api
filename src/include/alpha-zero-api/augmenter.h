@@ -11,7 +11,7 @@
 #include "alpha-zero-api/game.h"
 #include "alpha-zero-api/policy_output.h"
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 /**
  * @brief Augment the game before inference to reduce model bias.
@@ -91,6 +91,6 @@ class ITrainingAugmenter {
   virtual ~ITrainingAugmenter() = default;
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_AUGMENTER_H_

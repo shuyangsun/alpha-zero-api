@@ -9,7 +9,7 @@
 #include <string_view>
 #include <vector>
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 /**
  * @brief IGame is the interface of a specific game implementation. It is the
@@ -204,6 +204,6 @@ class IGame {
   virtual std::string ActionToString(const A& action) const = 0;
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_

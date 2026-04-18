@@ -11,15 +11,15 @@
 #include "augmentation.h"
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 namespace {
 
-using ::alphazero::game::api::test::internal::AugmentAll;
-using ::alphazero::game::api::test::internal::Augmentation;
-using ::alphazero::game::api::test::internal::MirrorHorizontal;
-using ::alphazero::game::api::test::internal::MirrorVertical;
-using ::alphazero::game::api::test::internal::RotateCounterclockwise;
+using ::az::game::api::test::internal::AugmentAll;
+using ::az::game::api::test::internal::Augmentation;
+using ::az::game::api::test::internal::MirrorHorizontal;
+using ::az::game::api::test::internal::MirrorVertical;
+using ::az::game::api::test::internal::RotateCounterclockwise;
 
 }  // namespace
 
@@ -124,4 +124,4 @@ PolicyOutput TttInferenceAugmenter::Interpret(
   return PolicyOutput(values_sum / augmented_games.size(), std::move(probs));
 }
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test

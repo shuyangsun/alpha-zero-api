@@ -5,7 +5,7 @@
 
 #include "alpha-zero-api/deserializer.h"
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 /**
  * @brief Default deserializer for neural networks.
@@ -52,6 +52,6 @@ class DefaultPolicyOutputDeserializer
   }
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_DESERIALIZER_H_

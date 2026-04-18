@@ -9,7 +9,7 @@
 #include "augmentation.h"
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 std::vector<
     std::tuple<TttBoard, TttPlayer, std::vector<TttAction>, PolicyOutput>>
@@ -34,4 +34,4 @@ TttTrainingAugmenter::Augment(const TttBoard& board, const TttPlayer& player,
   return result;
 }
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test

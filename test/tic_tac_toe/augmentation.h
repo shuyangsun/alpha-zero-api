@@ -9,7 +9,7 @@
 
 #include "game.h"
 
-namespace alphazero::game::api::test::internal {
+namespace az::game::api::test::internal {
 
 enum class Augmentation : uint8_t {
   kOriginal = 0,
@@ -51,6 +51,6 @@ std::unordered_map<uint8_t,
 AugmentAll(const TttBoard& board, const TttPlayer& player,
            std::span<const TttAction> actions);
 
-}  // namespace alphazero::game::api::test::internal
+}  // namespace az::game::api::test::internal
 
 #endif  // ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_

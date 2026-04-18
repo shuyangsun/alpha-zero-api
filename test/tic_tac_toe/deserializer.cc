@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 namespace {
 
@@ -52,4 +52,4 @@ std::expected<PolicyOutput, std::string> TttDeserializer::Deserialize(
   return PolicyOutput{output.front(), std::move(Softmax(probs))};
 }
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test

@@ -3,7 +3,7 @@
 
 #include "alpha-zero-api/serializer.h"
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 template <typename B, typename A, typename P>
 class DefaultPolicyOutputSerializer : public IPolicyOutputSerializer<B, A, P> {
@@ -23,6 +23,6 @@ class DefaultPolicyOutputSerializer : public IPolicyOutputSerializer<B, A, P> {
   }
 };
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_SERIALIZER_H_

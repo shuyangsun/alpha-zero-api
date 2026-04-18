@@ -18,16 +18,16 @@
 
 namespace {
 
-using ::alphazero::game::api::PolicyOutput;
+using ::az::game::api::PolicyOutput;
 
-using ::alphazero::game::api::test::TttAction;
-using ::alphazero::game::api::test::TttBoard;
-using ::alphazero::game::api::test::TttDeserializer;
-using ::alphazero::game::api::test::TttGame;
-using ::alphazero::game::api::test::TttInferenceAugmenter;
-using ::alphazero::game::api::test::TttPlayer;
-using ::alphazero::game::api::test::TttSerializer;
-using ::alphazero::game::api::test::TttTrainingAugmenter;
+using ::az::game::api::test::TttAction;
+using ::az::game::api::test::TttBoard;
+using ::az::game::api::test::TttDeserializer;
+using ::az::game::api::test::TttGame;
+using ::az::game::api::test::TttInferenceAugmenter;
+using ::az::game::api::test::TttPlayer;
+using ::az::game::api::test::TttSerializer;
+using ::az::game::api::test::TttTrainingAugmenter;
 
 }  // namespace
 

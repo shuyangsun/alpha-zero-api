@@ -7,7 +7,7 @@
 
 #include "game.h"
 
-namespace alphazero::game::api::test {
+namespace az::game::api::test {
 
 std::vector<float> TttSerializer::SerializeCurrentState(
     const TttBoard& board, const TttPlayer& player,
@@ -36,4 +36,4 @@ std::vector<float> TttSerializer::SerializePolicyOutput(
   return result;
 }
 
-}  // namespace alphazero::game::api::test
+}  // namespace az::game::api::test

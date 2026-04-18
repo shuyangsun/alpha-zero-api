@@ -6,7 +6,7 @@
 
 #include "alpha-zero-api/game.h"
 
-namespace alphazero::game::api {
+namespace az::game::api {
 
 // Standard game boards
 template <uint16_t SZ>
@@ -41,6 +41,6 @@ using ITwoPlayer2DBoardGame =
 using ITwoPlayer2DLargeBoardGame =
     IGame<Standard2DLargeBoard, Action2D, BinaryPlayer>;
 
-}  // namespace alphazero::game::api
+}  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_GAME_H_
