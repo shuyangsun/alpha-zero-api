@@ -26,30 +26,31 @@ enum class Augmentation : uint8_t {
   kMirrorVerticalRotate270
 };
 
-TttAction MirrorHorizontal(const TttAction& action);
-TttAction MirrorVertical(const TttAction& action);
-TttAction RotateClockwise(const TttAction& action);
-TttAction RotateCounterclockwise(const TttAction& action, size_t times);
+[[nodiscard]] TttAction MirrorHorizontal(const TttAction& action) noexcept;
+[[nodiscard]] TttAction MirrorVertical(const TttAction& action) noexcept;
+[[nodiscard]] TttAction RotateClockwise(const TttAction& action) noexcept;
+[[nodiscard]] TttAction RotateCounterclockwise(const TttAction& action,
+                                               size_t times) noexcept;
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorHorizontal(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions);
+[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
+MirrorHorizontal(const TttBoard& board, const TttPlayer& player,
+                 std::span<const TttAction> actions) noexcept;
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions);
+[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
+MirrorVertical(const TttBoard& board, const TttPlayer& player,
+               std::span<const TttAction> actions) noexcept;
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions);
+[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
+RotateClockwise(const TttBoard& board, const TttPlayer& player,
+                std::span<const TttAction> actions) noexcept;
 
 // Applies all 12 augmentations (original, 3 rotations, mirror-H,
 // mirror-H + 3 rotations, mirror-V, mirror-V + 3 rotations).
 // Keys are Augmentation enum values cast to uint8_t.
-std::unordered_map<uint8_t,
-                   std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
+[[nodiscard]] std::unordered_map<
+    uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
 AugmentAll(const TttBoard& board, const TttPlayer& player,
-           std::span<const TttAction> actions);
+           std::span<const TttAction> actions) noexcept;
 
 }  // namespace az::game::api::test::internal
 

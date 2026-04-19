@@ -39,8 +39,10 @@ class IInferenceAugmenter {
    * state, and the value is a tuple of the augmented board, player, and
    * actions.
    */
-  virtual std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>> Augment(
-      const B& board, const P& player, std::span<const A> actions) const = 0;
+  [[nodiscard]] virtual std::unordered_map<uint8_t,
+                                           std::tuple<B, P, std::vector<A>>>
+  Augment(const B& board, const P& player,
+          std::span<const A> actions) const noexcept = 0;
 
   /**
    * @brief Interpret the inference-time policy output from different augmented
@@ -54,10 +56,11 @@ class IInferenceAugmenter {
    * that augmented game.
    * @return PolicyOutput Interpreted policy output for the original game.
    */
-  virtual PolicyOutput Interpret(
+  [[nodiscard]] virtual PolicyOutput Interpret(
       const std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>>&
           augmented_games,
-      const std::unordered_map<uint8_t, PolicyOutput>& outputs) const = 0;
+      const std::unordered_map<uint8_t, PolicyOutput>& outputs)
+      const noexcept = 0;
 
   virtual ~IInferenceAugmenter() = default;
 };
@@ -84,9 +87,10 @@ class ITrainingAugmenter {
    * std::pair<std::shared_ptr<const IGame<B, A, P>>, PolicyOutput>> Vector of
    * augmented game and policy output pairs.
    */
-  virtual std::vector<std::tuple<B, P, std::vector<A>, PolicyOutput>> Augment(
-      const B& board, const P& player, std::span<const A> actions,
-      PolicyOutput&& output) const = 0;
+  [[nodiscard]] virtual std::vector<
+      std::tuple<B, P, std::vector<A>, PolicyOutput>>
+  Augment(const B& board, const P& player, std::span<const A> actions,
+          PolicyOutput&& output) const noexcept = 0;
 
   virtual ~ITrainingAugmenter() = default;
 };

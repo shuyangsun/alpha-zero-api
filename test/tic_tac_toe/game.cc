@@ -28,7 +28,7 @@ static constexpr auto kRowDelim_arr = [] {
 constexpr std::string_view kRowDelim{kRowDelim_arr.data(),
                                      kRowDelim_arr.size()};
 
-std::string_view Trim(std::string_view input) {
+[[nodiscard]] std::string_view Trim(std::string_view input) noexcept {
   while (!input.empty() &&
          std::isspace(static_cast<unsigned char>(input.front()))) {
     input.remove_prefix(1);
@@ -40,7 +40,7 @@ std::string_view Trim(std::string_view input) {
   return input;
 }
 
-char CellSymbol(int8_t value) {
+[[nodiscard]] char CellSymbol(int8_t value) noexcept {
   if (value == 1) {
     return 'X';
   }
@@ -57,7 +57,7 @@ enum class GameStatus : uint8_t {
   WIN_PLAYER_O,
 };
 
-GameStatus CheckGameStatus(const TttBoard& board) {
+[[nodiscard]] GameStatus CheckGameStatus(const TttBoard& board) noexcept {
   // Check rows and columns
   for (uint16_t i = 0; i < TTT_ROWS; ++i) {
     if (board[i][0] != 0 && board[i][0] == board[i][1] &&
@@ -95,27 +95,33 @@ GameStatus CheckGameStatus(const TttBoard& board) {
 
 }  // namespace
 
-TttGame::TttGame(TttPlayer starting_player)
+TttGame::TttGame(TttPlayer starting_player) noexcept
     : current_player_(starting_player) {}
 
-std::unique_ptr<const TttGameInterface> TttGame::Copy() const {
+TttGameResult TttGame::Create(TttPlayer starting_player) noexcept {
+  return TttGamePtr(new TttGame(starting_player));
+}
+
+std::unique_ptr<const TttGameInterface> TttGame::Copy() const noexcept {
   return std::make_unique<TttGame>(*this);
 }
 
-const TttBoard& TttGame::GetBoard() const { return board_; }
+const TttBoard& TttGame::GetBoard() const noexcept { return board_; }
 
-uint32_t TttGame::CurrentRound() const { return current_round_; }
+uint32_t TttGame::CurrentRound() const noexcept { return current_round_; }
 
-TttPlayer TttGame::CurrentPlayer() const { return current_player_; }
+TttPlayer TttGame::CurrentPlayer() const noexcept { return current_player_; }
 
-std::optional<TttPlayer> TttGame::LastPlayer() const {
+std::optional<TttPlayer> TttGame::LastPlayer() const noexcept {
   return last_action_.has_value() ? std::optional<TttPlayer>{!current_player_}
                                   : std::nullopt;
 }
 
-std::optional<TttAction> TttGame::LastAction() const { return last_action_; }
+std::optional<TttAction> TttGame::LastAction() const noexcept {
+  return last_action_;
+}
 
-TttBoard TttGame::CanonicalBoard() const {
+TttBoard TttGame::CanonicalBoard() const noexcept {
   if (!current_player_) {
     return board_;
   }
@@ -131,7 +137,7 @@ TttBoard TttGame::CanonicalBoard() const {
   return result;
 }
 
-std::vector<TttAction> TttGame::ValidActions() const {
+std::vector<TttAction> TttGame::ValidActions() const noexcept {
   std::vector<TttAction> actions;
   actions.reserve(TTT_ROWS * TTT_COLS);
   for (uint16_t r = 0; r < TTT_ROWS; ++r) {
@@ -145,7 +151,7 @@ std::vector<TttAction> TttGame::ValidActions() const {
 }
 
 std::unique_ptr<const TttGameInterface> TttGame::GameAfterAction(
-    const TttAction& action) const {
+    const TttAction& action) const noexcept {
   TttGame new_game = *this;
   new_game.board_[action.row][action.col] = current_player_ ? 1 : -1;
   new_game.current_player_ = !current_player_;
@@ -153,11 +159,11 @@ std::unique_ptr<const TttGameInterface> TttGame::GameAfterAction(
   return std::make_unique<TttGame>(std::move(new_game));
 }
 
-bool TttGame::IsOver() const {
+bool TttGame::IsOver() const noexcept {
   return CheckGameStatus(board_) != GameStatus::ONGOING;
 }
 
-float TttGame::GetScore(const TttPlayer& player) const {
+float TttGame::GetScore(const TttPlayer& player) const noexcept {
   using enum GameStatus;
   GameStatus status = CheckGameStatus(board_);
   if (status == ONGOING || status == DRAW) {
@@ -170,7 +176,7 @@ float TttGame::GetScore(const TttPlayer& player) const {
   return -1.0f;
 }
 
-std::string TttGame::BoardReadableString() const {
+std::string TttGame::BoardReadableString() const noexcept {
   std::ostringstream out;
   out << kRowDelim;
   for (uint16_t r = 0; r < TTT_ROWS; ++r) {
@@ -198,7 +204,7 @@ std::string TttGame::BoardReadableString() const {
 }
 
 std::expected<TttAction, std::string> TttGame::ActionFromString(
-    std::string_view action_str) const {
+    std::string_view action_str) const noexcept {
   action_str = Trim(action_str);
   if (action_str.size() != 2) {
     return std::unexpected(
@@ -232,7 +238,7 @@ std::expected<TttAction, std::string> TttGame::ActionFromString(
   return TttAction{row_index, col_index};
 }
 
-std::string TttGame::ActionToString(const TttAction& action) const {
+std::string TttGame::ActionToString(const TttAction& action) const noexcept {
   if (action.row >= TTT_ROWS || action.col >= TTT_COLS) {
     return "Invalid action";
   }

@@ -19,16 +19,17 @@ class TttInferenceAugmenter
   TttInferenceAugmenter() = default;
   ~TttInferenceAugmenter() override = default;
 
-  std::unordered_map<uint8_t,
-                     std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
+  [[nodiscard]] std::unordered_map<
+      uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
   Augment(const TttBoard& board, const TttPlayer& player,
-          std::span<const TttAction> actions) const final;
+          std::span<const TttAction> actions) const noexcept final;
 
-  PolicyOutput Interpret(
+  [[nodiscard]] PolicyOutput Interpret(
       const std::unordered_map<
           uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>&
           augmented_games,
-      const std::unordered_map<uint8_t, PolicyOutput>& outputs) const final;
+      const std::unordered_map<uint8_t, PolicyOutput>& outputs)
+      const noexcept final;
 };
 
 }  // namespace az::game::api::test

@@ -15,7 +15,7 @@ std::vector<
     std::tuple<TttBoard, TttPlayer, std::vector<TttAction>, PolicyOutput>>
 TttTrainingAugmenter::Augment(const TttBoard& board, const TttPlayer& player,
                               std::span<const TttAction> actions,
-                              PolicyOutput&& output) const {
+                              PolicyOutput&& output) const noexcept {
   std::unordered_map<uint8_t,
                      std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
       augmented = internal::AugmentAll(board, player, actions);

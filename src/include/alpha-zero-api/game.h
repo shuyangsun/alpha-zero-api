@@ -49,28 +49,29 @@ class IGame {
    * @return std::unique_ptr<const IGame<B, A, P>> Pointer to a new copy of this
    * game object.
    */
-  virtual std::unique_ptr<const IGame<B, A, P>> Copy() const = 0;
+  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P>> Copy()
+      const noexcept = 0;
 
   /**
    * @brief Get current board state.
    *
    * @return const B& Reference to the current game board state.
    */
-  virtual const B& GetBoard() const = 0;
+  [[nodiscard]] virtual const B& GetBoard() const noexcept = 0;
 
   /**
    * @brief Get current round (turn) number.
    *
    * @return uint32_t Current round number.
    */
-  virtual uint32_t CurrentRound() const = 0;
+  [[nodiscard]] virtual uint32_t CurrentRound() const noexcept = 0;
 
   /**
    * @brief Get current player, the player that needs to take an action.
    *
    * @return P Player that will take the next action.
    */
-  virtual P CurrentPlayer() const = 0;
+  [[nodiscard]] virtual P CurrentPlayer() const noexcept = 0;
 
   /**
    * @brief Get the player that played the round before the current round.
@@ -81,7 +82,7 @@ class IGame {
    *
    * @return std::optional<P> Player that took the last action.
    */
-  virtual std::optional<P> LastPlayer() const = 0;
+  [[nodiscard]] virtual std::optional<P> LastPlayer() const noexcept = 0;
 
   /**
    * @brief Get the last action last player took, which lead to the current
@@ -100,7 +101,7 @@ class IGame {
    *
    * @return std::optional<A> The action taken by the last player.
    */
-  virtual std::optional<A> LastAction() const = 0;
+  [[nodiscard]] virtual std::optional<A> LastAction() const noexcept = 0;
 
   /**
    * @brief Get the canonical form of the current board state.
@@ -112,7 +113,7 @@ class IGame {
    * @return B Canonical form of the current board state from the current
    * player's perspective.
    */
-  virtual B CanonicalBoard() const = 0;
+  [[nodiscard]] virtual B CanonicalBoard() const noexcept = 0;
 
   /**
    * @brief Vector of all valid actions the current player can take.
@@ -124,7 +125,7 @@ class IGame {
    *
    * @return std::vector<A> Actions the current player can take.
    */
-  virtual std::vector<A> ValidActions() const = 0;
+  [[nodiscard]] virtual std::vector<A> ValidActions() const noexcept = 0;
 
   /**
    * @brief Game state after the current player takes a given action.
@@ -140,11 +141,11 @@ class IGame {
    *
    * @param action Action to take from the current game state by the current
    * player.
-   * @return std::unique_ptr<const IGame> Pointer to a new game object after the
-   * action is taken by the current player.
+   * @return std::unique_ptr<const IGame<B, A, P>> Pointer to a new game object
+   * after the action is taken by the current player.
    */
-  virtual std::unique_ptr<const IGame> GameAfterAction(
-      const A& action) const = 0;
+  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P>> GameAfterAction(
+      const A& action) const noexcept = 0;
 
   /**
    * @brief Check if the game ended.
@@ -156,7 +157,7 @@ class IGame {
    * @return true Game is over.
    * @return false Game is not over.
    */
-  virtual bool IsOver() const = 0;
+  [[nodiscard]] virtual bool IsOver() const noexcept = 0;
 
   /**
    * @brief Get the score of given player when the game is over.
@@ -168,7 +169,7 @@ class IGame {
    * @param player Player to get the score.
    * @return float Score of the given player after the game ends.
    */
-  virtual float GetScore(const P& player) const = 0;
+  [[nodiscard]] virtual float GetScore(const P& player) const noexcept = 0;
 
   /**
    * @brief Print the current game board in a human-readable format.
@@ -178,7 +179,7 @@ class IGame {
    *
    * @return std::string Readable string of the current game board.
    */
-  virtual std::string BoardReadableString() const = 0;
+  [[nodiscard]] virtual std::string BoardReadableString() const noexcept = 0;
 
   /**
    * @brief Action from a human-readable string.
@@ -189,8 +190,8 @@ class IGame {
    * @param action_str User input of the next action they want to take.
    * @return std::expected<A, std::string>
    */
-  virtual std::expected<A, std::string> ActionFromString(
-      std::string_view action_str) const = 0;
+  [[nodiscard]] virtual std::expected<A, std::string> ActionFromString(
+      std::string_view action_str) const noexcept = 0;
 
   /**
    * @brief Converts an action to a human-readable string.
@@ -201,7 +202,8 @@ class IGame {
    * @param action Action to convert to a readable string.
    * @return std::string Readable string of the action.
    */
-  virtual std::string ActionToString(const A& action) const = 0;
+  [[nodiscard]] virtual std::string ActionToString(
+      const A& action) const noexcept = 0;
 };
 
 }  // namespace az::game::api

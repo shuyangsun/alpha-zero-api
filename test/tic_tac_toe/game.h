@@ -20,6 +20,21 @@ using TttPlayer = BinaryPlayer;
 using TttGameInterface = IGame<TttBoard, TttAction, TttPlayer>;
 
 /**
+ * @brief Error type for TttGame failure.
+ */
+enum class TttError : uint8_t {
+  kUnknownError = 0,
+  kNotImplemented,
+};
+
+using TttGamePtr = std::unique_ptr<const TttGameInterface>;
+
+/**
+ * @brief Result type for TttGame construction.
+ */
+using TttGameResult = std::expected<TttGamePtr, TttError>;
+
+/**
  * @brief An implementation of the Tic Tac Toe game.
  *
  * All methods on this class are const, the game state is immutable. The only
@@ -28,9 +43,11 @@ using TttGameInterface = IGame<TttBoard, TttAction, TttPlayer>;
  */
 class TttGame : public TttGameInterface {
  public:
-  TttGame(TttPlayer starting_player = false);
-  TttGame(const TttGame& other) = default;
-  TttGame(TttGame&& other) = default;
+  [[nodiscard]] static TttGameResult Create(
+      TttPlayer starting_player = false) noexcept;
+
+  TttGame(const TttGame& other) noexcept = default;
+  TttGame(TttGame&& other) noexcept = default;
 
   ~TttGame() override = default;
 
@@ -40,31 +57,30 @@ class TttGame : public TttGameInterface {
    * The returned pointer cannot be nullptr, and it points to a new game state
    * that is identical to the current one.
    *
-   * @return std::unique_ptr<const TttGameInterface> Unique pointer to the new
-   * copy of the game state.
+   * @return TttGamePtr Unique pointer to the new copy of the game state.
    */
-  std::unique_ptr<const TttGameInterface> Copy() const final;
+  [[nodiscard]] TttGamePtr Copy() const noexcept final;
 
   /**
    * @brief Get the current game board state.
    *
    * @return const TttBoard& Const reference to the current game board state.
    */
-  const TttBoard& GetBoard() const final;
+  [[nodiscard]] const TttBoard& GetBoard() const noexcept final;
 
   /**
    * @brief Get the current round number.
    *
    * @return uint32_t The current round number.
    */
-  uint32_t CurrentRound() const final;
+  [[nodiscard]] uint32_t CurrentRound() const noexcept final;
 
   /**
    * @brief Get the current player.
    *
    * @return TttPlayer The current player.
    */
-  TttPlayer CurrentPlayer() const final;
+  [[nodiscard]] TttPlayer CurrentPlayer() const noexcept final;
 
   /**
    * @brief Get the player from last round.
@@ -72,7 +88,7 @@ class TttGame : public TttGameInterface {
    * @return std::optional<TttPlayer> The player from last round, or
    * std::nullopt if the game has not started yet.
    */
-  std::optional<TttPlayer> LastPlayer() const final;
+  [[nodiscard]] std::optional<TttPlayer> LastPlayer() const noexcept final;
 
   /**
    * @brief Get the last action taken by the last player.
@@ -80,7 +96,7 @@ class TttGame : public TttGameInterface {
    * @return std::optional<TttAction> The last action taken by the last player,
    * or std::nullopt if the game has not started yet.
    */
-  std::optional<TttAction> LastAction() const final;
+  [[nodiscard]] std::optional<TttAction> LastAction() const noexcept final;
 
   /**
    * @brief The canonical representation of the current board state from the
@@ -103,7 +119,7 @@ class TttGame : public TttGameInterface {
    *
    * @return TttBoard The canonical representation of the current board state.
    */
-  TttBoard CanonicalBoard() const final;
+  [[nodiscard]] TttBoard CanonicalBoard() const noexcept final;
 
   /**
    * @brief Check if the game is over.
@@ -114,7 +130,7 @@ class TttGame : public TttGameInterface {
    * @return true If the game is over.
    * @return false If the game is not over.
    */
-  bool IsOver() const final;
+  [[nodiscard]] bool IsOver() const noexcept final;
 
   /**
    * @brief Get the score of the given player in the current game state.
@@ -127,7 +143,7 @@ class TttGame : public TttGameInterface {
    * @param player The player for which to get the score.
    * @return float The score of the player.
    */
-  float GetScore(const TttPlayer& player) const final;
+  [[nodiscard]] float GetScore(const TttPlayer& player) const noexcept final;
 
   // --------------------------------- Actions ---------------------------------
 
@@ -144,7 +160,7 @@ class TttGame : public TttGameInterface {
    * @return std::vector<TttAction> Vector of all valid actions for the current
    * player.
    */
-  std::vector<TttAction> ValidActions() const final;
+  [[nodiscard]] std::vector<TttAction> ValidActions() const noexcept final;
 
   /**
    * @brief Returns a new game state after the current player takes the given
@@ -161,11 +177,10 @@ class TttGame : public TttGameInterface {
    *
    * @param action The action to be taken by the current player.
    *
-   * @return std::unique_ptr<const TttGameInterface> A pointer to the new game
-   * state after taking the action.
+   * @return TttGamePtr A pointer to the new game state after taking the action.
    */
-  std::unique_ptr<const TttGameInterface> GameAfterAction(
-      const TttAction& action) const final;
+  [[nodiscard]] TttGamePtr GameAfterAction(
+      const TttAction& action) const noexcept final;
 
   // --------------------------- String Conversions ----------------------------
 
@@ -180,7 +195,7 @@ class TttGame : public TttGameInterface {
    * @return std::string A human-readable string representing the current board
    * state.
    */
-  std::string BoardReadableString() const final;
+  [[nodiscard]] std::string BoardReadableString() const noexcept final;
 
   /**
    * @brief Convert a human-readable string to an action.
@@ -192,8 +207,8 @@ class TttGame : public TttGameInterface {
    * @return std::expected<TttAction, std::string> The action if the string is
    * valid, or an error message if the string is invalid.
    */
-  std::expected<TttAction, std::string> ActionFromString(
-      std::string_view action_str) const final;
+  [[nodiscard]] std::expected<TttAction, std::string> ActionFromString(
+      std::string_view action_str) const noexcept final;
 
   /**
    * @brief Convert an action to a human-readable string.
@@ -204,9 +219,12 @@ class TttGame : public TttGameInterface {
    * @param action The action to be converted to string.
    * @return std::string A human-readable string representing the action.
    */
-  std::string ActionToString(const TttAction& action) const final;
+  [[nodiscard]] std::string ActionToString(
+      const TttAction& action) const noexcept final;
 
  private:
+  TttGame(TttPlayer starting_player) noexcept;
+
   TttBoard board_ = TttBoard{};
   uint32_t current_round_ = 0;
   TttPlayer current_player_;

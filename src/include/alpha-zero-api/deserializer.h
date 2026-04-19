@@ -49,9 +49,9 @@ class IPolicyOutputDeserializer {
    * @return std::expected<PolicyOutput, E> PolicyOutput object if the
    * deserialization is successful, error type otherwise.
    */
-  virtual std::expected<PolicyOutput, E> Deserialize(
+  [[nodiscard]] virtual std::expected<PolicyOutput, E> Deserialize(
       const B& board, const P& player, std::span<const A> actions,
-      std::span<const float> output) const = 0;
+      std::span<const float> output) const noexcept = 0;
 };
 
 }  // namespace az::game::api

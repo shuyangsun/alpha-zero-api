@@ -74,7 +74,7 @@ struct PolicyOutput {
   float value;
 
   /**
-   * @brief Probablities of selecting each action.
+   * @brief Probabilities of selecting each action.
    */
   std::vector<float> probabilities;
 };

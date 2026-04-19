@@ -11,22 +11,23 @@
 
 namespace az::game::api::test::internal {
 
-TttAction MirrorHorizontal(const TttAction& action) {
+TttAction MirrorHorizontal(const TttAction& action) noexcept {
   return TttAction{action.row,
                    static_cast<uint16_t>(TTT_COLS - 1 - action.col)};
 }
 
-TttAction MirrorVertical(const TttAction& action) {
+TttAction MirrorVertical(const TttAction& action) noexcept {
   return TttAction{static_cast<uint16_t>(TTT_ROWS - 1 - action.row),
                    action.col};
 }
 
-TttAction RotateClockwise(const TttAction& action) {
+TttAction RotateClockwise(const TttAction& action) noexcept {
   return TttAction{static_cast<uint16_t>(action.col),
                    static_cast<uint16_t>(TTT_ROWS - 1 - action.row)};
 }
 
-TttAction RotateCounterclockwise(const TttAction& action, size_t times) {
+TttAction RotateCounterclockwise(const TttAction& action,
+                                 size_t times) noexcept {
   times = times % 4;
   switch (times) {
     case 1:
@@ -44,7 +45,7 @@ TttAction RotateCounterclockwise(const TttAction& action, size_t times) {
 
 std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorHorizontal(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) {
+    std::span<const TttAction> actions) noexcept {
   TttBoard mirrored_board = board;
   for (size_t row = 0; row < TTT_ROWS; ++row) {
     for (size_t col = 0; col < TTT_COLS / 2; ++col) {
@@ -62,7 +63,7 @@ std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorHorizontal(
 
 std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) {
+    std::span<const TttAction> actions) noexcept {
   TttBoard mirrored_board = board;
   for (size_t row = 0; row < TTT_ROWS / 2; ++row) {
     for (size_t col = 0; col < TTT_COLS; ++col) {
@@ -80,7 +81,7 @@ std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
 
 std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) {
+    std::span<const TttAction> actions) noexcept {
   TttBoard rotated_board = board;
   TttBoard temp = rotated_board;
   for (size_t row = 0; row < TTT_ROWS; ++row) {
@@ -99,7 +100,7 @@ std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
 std::unordered_map<uint8_t,
                    std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
 AugmentAll(const TttBoard& board, const TttPlayer& player,
-           std::span<const TttAction> actions) {
+           std::span<const TttAction> actions) noexcept {
   using enum Augmentation;
   std::unordered_map<uint8_t,
                      std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>

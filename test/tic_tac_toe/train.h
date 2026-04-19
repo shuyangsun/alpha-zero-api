@@ -16,11 +16,11 @@ class TttTrainingAugmenter
   TttTrainingAugmenter() = default;
   ~TttTrainingAugmenter() override = default;
 
-  std::vector<
+  [[nodiscard]] std::vector<
       std::tuple<TttBoard, TttPlayer, std::vector<TttAction>, PolicyOutput>>
   Augment(const TttBoard& board, const TttPlayer& player,
           std::span<const TttAction> actions,
-          PolicyOutput&& output) const final;
+          PolicyOutput&& output) const noexcept final;
 };
 
 }  // namespace az::game::api::test

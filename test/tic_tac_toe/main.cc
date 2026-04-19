@@ -6,6 +6,7 @@
 #include <span>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -23,7 +24,10 @@ using ::az::game::api::PolicyOutput;
 using ::az::game::api::test::TttAction;
 using ::az::game::api::test::TttBoard;
 using ::az::game::api::test::TttDeserializer;
+using ::az::game::api::test::TttError;
 using ::az::game::api::test::TttGame;
+using ::az::game::api::test::TttGamePtr;
+using ::az::game::api::test::TttGameResult;
 using ::az::game::api::test::TttInferenceAugmenter;
 using ::az::game::api::test::TttPlayer;
 using ::az::game::api::test::TttSerializer;
@@ -32,10 +36,18 @@ using ::az::game::api::test::TttTrainingAugmenter;
 }  // namespace
 
 int main() {
-  const auto game = std::make_unique<TttGame>()
-                        ->GameAfterAction(TttAction{1, 1})
-                        ->GameAfterAction(TttAction{0, 1})
-                        ->GameAfterAction(TttAction{2, 0});
+  TttGameResult game_result = TttGame::Create();
+  if (!game_result.has_value()) {
+    std::cerr << "Error creating game: "
+              << static_cast<std::underlying_type_t<TttError>>(
+                     game_result.error())
+              << std::endl;
+    return 1;
+  }
+  const TttGamePtr game = std::move(*game_result)
+                              ->GameAfterAction(TttAction{1, 1})
+                              ->GameAfterAction(TttAction{0, 1})
+                              ->GameAfterAction(TttAction{2, 0});
   std::cout << "Current board:\n" << game->BoardReadableString() << "\n";
 
   // Step 1 (optional): augment game state for inference.

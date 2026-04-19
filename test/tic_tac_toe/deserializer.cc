@@ -11,8 +11,10 @@ namespace az::game::api::test {
 
 namespace {
 
-std::vector<float> Softmax(std::span<const float> input) {
-  if (input.empty()) return {};
+std::vector<float> Softmax(std::span<const float> input) noexcept {
+  if (input.empty()) {
+    return {};
+  }
 
   const float max_val = *std::max_element(input.begin(), input.end());
 
@@ -37,7 +39,8 @@ std::vector<float> Softmax(std::span<const float> input) {
 
 std::expected<PolicyOutput, std::string> TttDeserializer::Deserialize(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions, std::span<const float> output) const {
+    std::span<const TttAction> actions,
+    std::span<const float> output) const noexcept {
   if (output.size() != TTT_ROWS * TTT_COLS + 1) {
     return std::unexpected<std::string>(
         "Neural network output size is not equal to board size + 1.");

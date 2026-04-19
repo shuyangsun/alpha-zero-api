@@ -25,8 +25,9 @@ using ::az::game::api::test::internal::RotateCounterclockwise;
 
 std::unordered_map<uint8_t,
                    std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-TttInferenceAugmenter::Augment(const TttBoard& board, const TttPlayer& player,
-                               std::span<const TttAction> actions) const {
+TttInferenceAugmenter::Augment(
+    const TttBoard& board, const TttPlayer& player,
+    std::span<const TttAction> actions) const noexcept {
   return internal::AugmentAll(board, player, actions);
 }
 
@@ -34,7 +35,7 @@ PolicyOutput TttInferenceAugmenter::Interpret(
     const std::unordered_map<
         uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>&
         augmented_games,
-    const std::unordered_map<uint8_t, PolicyOutput>& outputs) const {
+    const std::unordered_map<uint8_t, PolicyOutput>& outputs) const noexcept {
   using enum Augmentation;
 
   assert(augmented_games.find(static_cast<uint8_t>(kOriginal)) !=

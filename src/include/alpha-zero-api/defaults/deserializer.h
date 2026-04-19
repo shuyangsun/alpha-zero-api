@@ -36,9 +36,9 @@ class DefaultPolicyOutputDeserializer
    * @return std::expected<PolicyOutput, std::string> PolicyOutput object if the
    * deserialization is successful, error message otherwise.
    */
-  std::expected<PolicyOutput, std::string> Deserialize(
+  [[nodiscard]] std::expected<PolicyOutput, std::string> Deserialize(
       const B& board, const P& player, std::span<const A> actions,
-      std::span<const float> output) const final {
+      std::span<const float> output) const noexcept final {
     if (output.size() < 1) {
       return std::unexpected<std::string>(
           "Neural network output size is less than 1.");

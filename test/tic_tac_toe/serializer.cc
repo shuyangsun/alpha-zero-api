@@ -11,7 +11,7 @@ namespace az::game::api::test {
 
 std::vector<float> TttSerializer::SerializeCurrentState(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) const {
+    std::span<const TttAction> actions) const noexcept {
   std::vector<float> result;
   result.reserve(TTT_ROWS * TTT_COLS);
   for (const auto& row : board) {
@@ -25,7 +25,8 @@ std::vector<float> TttSerializer::SerializeCurrentState(
 
 std::vector<float> TttSerializer::SerializePolicyOutput(
     const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions, const PolicyOutput& output) const {
+    std::span<const TttAction> actions,
+    const PolicyOutput& output) const noexcept {
   std::vector<float> result(TTT_COLS * TTT_ROWS + 1, 0.0f);
   result[0] = output.value;
   for (size_t i = 0; i < actions.size(); ++i) {

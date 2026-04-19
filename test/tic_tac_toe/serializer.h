@@ -19,14 +19,14 @@ class TttSerializer
   TttSerializer() = default;
   ~TttSerializer() override = default;
 
-  std::vector<float> SerializeCurrentState(
+  [[nodiscard]] std::vector<float> SerializeCurrentState(
       const TttBoard& board, const TttPlayer& player,
-      std::span<const TttAction> actions) const final;
+      std::span<const TttAction> actions) const noexcept final;
 
-  std::vector<float> SerializePolicyOutput(
+  [[nodiscard]] std::vector<float> SerializePolicyOutput(
       const TttBoard& board, const TttPlayer& player,
       std::span<const TttAction> actions,
-      const PolicyOutput& output) const final;
+      const PolicyOutput& output) const noexcept final;
 };
 
 }  // namespace az::game::api::test

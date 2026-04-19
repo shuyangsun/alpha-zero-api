@@ -43,8 +43,9 @@ class IGameSerializer {
    * @return std::vector<float> Serialized neural network input as a vector of
    * floats.
    */
-  virtual std::vector<float> SerializeCurrentState(
-      const B& board, const P& player, std::span<const A> actions) const = 0;
+  [[nodiscard]] virtual std::vector<float> SerializeCurrentState(
+      const B& board, const P& player,
+      std::span<const A> actions) const noexcept = 0;
 };
 
 template <typename B, typename A, typename P>
@@ -63,9 +64,9 @@ class IPolicyOutputSerializer {
    * @return std::vector<float> Serialized PolicyOutput object as a vector of
    * single-precision floats.
    */
-  virtual std::vector<float> SerializePolicyOutput(
+  [[nodiscard]] virtual std::vector<float> SerializePolicyOutput(
       const B& board, const P& player, std::span<const A> actions,
-      const PolicyOutput& output) const = 0;
+      const PolicyOutput& output) const noexcept = 0;
 };
 
 }  // namespace az::game::api

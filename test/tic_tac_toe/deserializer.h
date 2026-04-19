@@ -18,10 +18,10 @@ class TttDeserializer
   TttDeserializer() = default;
   ~TttDeserializer() override = default;
 
-  std::expected<PolicyOutput, std::string> Deserialize(
+  [[nodiscard]] std::expected<PolicyOutput, std::string> Deserialize(
       const TttBoard& board, const TttPlayer& player,
       std::span<const TttAction> actions,
-      std::span<const float> output) const final;
+      std::span<const float> output) const noexcept final;
 };
 
 }  // namespace az::game::api::test
