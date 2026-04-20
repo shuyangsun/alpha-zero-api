@@ -17,7 +17,6 @@ constexpr uint16_t TTT_COLS = 3;
 using TttBoard = Standard2DBoard<TTT_ROWS, TTT_COLS>;
 using TttAction = Action2D;
 using TttPlayer = BinaryPlayer;
-using TttGameInterface = IGame<TttBoard, TttAction, TttPlayer>;
 
 /**
  * @brief Error type for TttGame failure.
@@ -25,14 +24,22 @@ using TttGameInterface = IGame<TttBoard, TttAction, TttPlayer>;
 enum class TttError : uint8_t {
   kUnknownError = 0,
   kNotImplemented,
+  kInvalidActionFormat,
+  kInvalidActionColumnType,
+  kInvalidActionColumnRange,
+  kInvalidActionRowType,
+  kInvalidActionRowRange,
+  kInvalidPolicyOutputSize,
 };
 
-using TttGamePtr = std::unique_ptr<const TttGameInterface>;
+template <typename T>
+using TttResult = std::expected<T, TttError>;
 
-/**
- * @brief Result type for TttGame construction.
- */
-using TttGameResult = std::expected<TttGamePtr, TttError>;
+using TttStatus = TttResult<void>;
+
+using TttGameInterface = IGame<TttBoard, TttAction, TttPlayer, TttError>;
+
+using TttGamePtr = std::unique_ptr<const TttGameInterface>;
 
 /**
  * @brief An implementation of the Tic Tac Toe game.
@@ -43,7 +50,7 @@ using TttGameResult = std::expected<TttGamePtr, TttError>;
  */
 class TttGame : public TttGameInterface {
  public:
-  [[nodiscard]] static TttGameResult Create(
+  [[nodiscard]] static TttResult<TttGamePtr> Create(
       TttPlayer starting_player = false) noexcept;
 
   TttGame(const TttGame& other) noexcept = default;
@@ -204,10 +211,10 @@ class TttGame : public TttGameInterface {
    * terminal.
    *
    * @param action_str The string representing the action.
-   * @return std::expected<TttAction, std::string> The action if the string is
-   * valid, or an error message if the string is invalid.
+   * @return TttResult<TttAction> The action if the string is valid, or an
+   * error code if the string is invalid.
    */
-  [[nodiscard]] std::expected<TttAction, std::string> ActionFromString(
+  [[nodiscard]] TttResult<TttAction> ActionFromString(
       std::string_view action_str) const noexcept final;
 
   /**

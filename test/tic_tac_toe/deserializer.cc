@@ -37,13 +37,12 @@ std::vector<float> Softmax(std::span<const float> input) noexcept {
 
 }  // namespace
 
-std::expected<PolicyOutput, std::string> TttDeserializer::Deserialize(
+TttResult<PolicyOutput> TttDeserializer::Deserialize(
     const TttBoard& board, const TttPlayer& player,
     std::span<const TttAction> actions,
     std::span<const float> output) const noexcept {
   if (output.size() != TTT_ROWS * TTT_COLS + 1) {
-    return std::unexpected<std::string>(
-        "Neural network output size is not equal to board size + 1.");
+    return std::unexpected(TttError::kInvalidPolicyOutputSize);
   }
   std::vector<float> probs;
   probs.reserve(actions.size());

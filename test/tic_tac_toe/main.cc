@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdint>
-#include <expected>
 #include <iostream>
 #include <memory>
 #include <span>
@@ -27,16 +26,16 @@ using ::az::game::api::test::TttDeserializer;
 using ::az::game::api::test::TttError;
 using ::az::game::api::test::TttGame;
 using ::az::game::api::test::TttGamePtr;
-using ::az::game::api::test::TttGameResult;
 using ::az::game::api::test::TttInferenceAugmenter;
 using ::az::game::api::test::TttPlayer;
+using ::az::game::api::test::TttResult;
 using ::az::game::api::test::TttSerializer;
 using ::az::game::api::test::TttTrainingAugmenter;
 
 }  // namespace
 
 int main() {
-  TttGameResult game_result = TttGame::Create();
+  TttResult<TttGamePtr> game_result = TttGame::Create();
   if (!game_result.has_value()) {
     std::cerr << "Error creating game: "
               << static_cast<std::underlying_type_t<TttError>>(
@@ -104,7 +103,7 @@ int main() {
   deserialized_aug_outputs.reserve(aug_outputs.size());
   for (const auto& [key, value] : aug_outputs) {
     const auto deserialier = std::make_unique<TttDeserializer>();
-    const std::expected<PolicyOutput, std::string> deserialized_output =
+    const TttResult<PolicyOutput> deserialized_output =
         deserialier->Deserialize(game->GetBoard(), game->CurrentPlayer(),
                                  game->ValidActions(), value);
     assert(deserialized_output.has_value());

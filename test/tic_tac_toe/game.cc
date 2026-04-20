@@ -98,7 +98,7 @@ enum class GameStatus : uint8_t {
 TttGame::TttGame(TttPlayer starting_player) noexcept
     : current_player_(starting_player) {}
 
-TttGameResult TttGame::Create(TttPlayer starting_player) noexcept {
+TttResult<TttGamePtr> TttGame::Create(TttPlayer starting_player) noexcept {
   return TttGamePtr(new TttGame(starting_player));
 }
 
@@ -203,33 +203,31 @@ std::string TttGame::BoardReadableString() const noexcept {
   return out.str();
 }
 
-std::expected<TttAction, std::string> TttGame::ActionFromString(
+TttResult<TttAction> TttGame::ActionFromString(
     std::string_view action_str) const noexcept {
   action_str = Trim(action_str);
   if (action_str.size() != 2) {
-    return std::unexpected(
-        std::string{"Action must match pattern <column><row>, e.g. A1"});
+    return std::unexpected(TttError::kInvalidActionFormat);
   }
 
   const char col_char_raw = action_str[0];
   const char row_char = action_str[1];
 
   if (!std::isalpha(static_cast<unsigned char>(col_char_raw))) {
-    return std::unexpected(
-        std::string{"Column must be a letter between A and C"});
+    return std::unexpected(TttError::kInvalidActionColumnType);
   }
   const char col_char =
       static_cast<char>(std::toupper(static_cast<unsigned char>(col_char_raw)));
   if (col_char < 'A' || col_char >= static_cast<char>('A' + TTT_COLS)) {
-    return std::unexpected(std::string{"Column must be between A and C"});
+    return std::unexpected(TttError::kInvalidActionColumnRange);
   }
 
   if (!std::isdigit(static_cast<unsigned char>(row_char))) {
-    return std::unexpected(std::string{"Row must be a digit between 1 and 3"});
+    return std::unexpected(TttError::kInvalidActionRowType);
   }
   const uint16_t row_number = static_cast<uint16_t>(row_char - '0');
   if (row_number < 1 || row_number > TTT_ROWS) {
-    return std::unexpected(std::string{"Row must be between 1 and 3"});
+    return std::unexpected(TttError::kInvalidActionRowRange);
   }
 
   const uint16_t col_index = static_cast<uint16_t>(col_char - 'A');

@@ -22,8 +22,9 @@ namespace az::game::api {
  * on the board.
  * @tparam P Type of player. For two player games, this is usually bool; for
  * multi-player games, this is usually unsigned int.
+ * @tparam E Type of error returned when parsing a human-readable action.
  */
-template <typename B, typename A, typename P>
+template <typename B, typename A, typename P, typename E>
 class IGame {
  public:
   virtual ~IGame() = default;
@@ -46,10 +47,10 @@ class IGame {
   /**
    * @brief Copy the current game state.
    *
-   * @return std::unique_ptr<const IGame<B, A, P>> Pointer to a new copy of this
-   * game object.
+   * @return std::unique_ptr<const IGame<B, A, P, E>> Pointer to a new copy of
+   * this game object.
    */
-  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P>> Copy()
+  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P, E>> Copy()
       const noexcept = 0;
 
   /**
@@ -141,11 +142,11 @@ class IGame {
    *
    * @param action Action to take from the current game state by the current
    * player.
-   * @return std::unique_ptr<const IGame<B, A, P>> Pointer to a new game object
-   * after the action is taken by the current player.
+   * @return std::unique_ptr<const IGame<B, A, P, E>> Pointer to a new game
+   * object after the action is taken by the current player.
    */
-  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P>> GameAfterAction(
-      const A& action) const noexcept = 0;
+  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P, E>>
+  GameAfterAction(const A& action) const noexcept = 0;
 
   /**
    * @brief Check if the game ended.
@@ -188,9 +189,9 @@ class IGame {
    * action.
    *
    * @param action_str User input of the next action they want to take.
-   * @return std::expected<A, std::string>
+   * @return std::expected<A, E>
    */
-  [[nodiscard]] virtual std::expected<A, std::string> ActionFromString(
+  [[nodiscard]] virtual std::expected<A, E> ActionFromString(
       std::string_view action_str) const noexcept = 0;
 
   /**

@@ -11,14 +11,13 @@
 
 namespace az::game::api::test {
 
-class TttDeserializer
-    : public IPolicyOutputDeserializer<TttBoard, TttAction, TttPlayer,
-                                       std::string> {
+class TttDeserializer : public IPolicyOutputDeserializer<TttBoard, TttAction,
+                                                         TttPlayer, TttError> {
  public:
   TttDeserializer() = default;
   ~TttDeserializer() override = default;
 
-  [[nodiscard]] std::expected<PolicyOutput, std::string> Deserialize(
+  [[nodiscard]] TttResult<PolicyOutput> Deserialize(
       const TttBoard& board, const TttPlayer& player,
       std::span<const TttAction> actions,
       std::span<const float> output) const noexcept final;

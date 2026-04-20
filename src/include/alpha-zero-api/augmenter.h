@@ -83,9 +83,8 @@ class ITrainingAugmenter {
    * @param player Current player.
    * @param actions Valid actions for current player.
    * @param output Policy output for the current game state.
-   * @return std::vector<
-   * std::pair<std::shared_ptr<const IGame<B, A, P>>, PolicyOutput>> Vector of
-   * augmented game and policy output pairs.
+   * @return std::vector<std::tuple<B, P, std::vector<A>, PolicyOutput>> Vector
+   * of augmented game states and policy output pairs.
    */
   [[nodiscard]] virtual std::vector<
       std::tuple<B, P, std::vector<A>, PolicyOutput>>
