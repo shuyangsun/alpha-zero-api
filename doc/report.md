@@ -232,11 +232,11 @@ There are two problems:
 1. **The default deserializer's contract is incompatible with the typical
    serializer.** A serializer that writes into a fixed-size N-slot policy
    (TtT does, AZ chess and Go do) produces a `1 + N`-d output (TtT: 10).
-   The deserializer rejects that as a size mismatch unless `actions.size()
-   - 1 == N + 1`, i.e. unless every valid-action list happens to be
-length N — only true at game start. The default is therefore unusable
-for any real game once `ValidActions()`shrinks below the full action
-space. (See`defaults/deserializer.h:46`.)
+   The deserializer rejects that as a size mismatch unless
+   `actions.size() - 1 == N + 1`, i.e. unless every valid-action list happens to
+   be length N, only true at game start. The default is therefore unusable for
+   any real game once `ValidActions()` shrinks below the full action space.
+   (See`defaults/deserializer.h:46`.)
 2. **There is no canonical way for the engine to know "where does action
    `a` live in the policy vector?"** The engine wants this for masking,
    training-target alignment, and symmetry handling. Today it can only
@@ -245,6 +245,7 @@ space. (See`defaults/deserializer.h:46`.)
 **Suggested directions**:
 
 - Add to `IGame` (or to a new `IActionEncoder`):
+
   ```cpp
   virtual std::size_t PolicySize() const noexcept = 0;       // fixed N
   virtual std::size_t PolicyIndex(const A&) const noexcept = 0;
@@ -252,6 +253,7 @@ space. (See`defaults/deserializer.h:46`.)
   virtual std::optional<A> ActionFromPolicyIndex(
       std::size_t idx) const noexcept = 0;
   ```
+
 - Have the deserializer's contract become "produce a `PolicyOutput`
   whose `probabilities[i]` corresponds to `actions[i]`, given a network
   output of size `PolicySize() + value_dim`." Then the default
@@ -706,12 +708,12 @@ API surface_):
 
 Still open:
 
-3. **Formalize the action ↔ policy-index mapping (B4)** — today the
+1. **Formalize the action ↔ policy-index mapping (B4)** — today the
    default deserializer is broken for any non-trivial game, and the
    contract between serializer and deserializer is implicit. The
    concept sketch leaves `kPolicySize` / `PolicyIndex(a)` as a TBD
    placeholder.
-4. The remaining "Significant" / "Polish" items, plus B3 (split
+2. The remaining "Significant" / "Polish" items, plus B3 (split
    `PolicyOutput` into `Evaluation` / `TrainingTarget` — partly
    addressed in the suggested API surface) and B5 (game-length cap).
 
