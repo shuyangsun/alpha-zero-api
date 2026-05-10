@@ -1,11 +1,14 @@
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <span>
 #include <utility>
 #include <vector>
 
+#include "alpha-zero-api/defaults/compact_deserializer.h"
+#include "alpha-zero-api/defaults/compact_serializer.h"
 #include "alpha-zero-api/defaults/serializer.h"
 #include "alpha-zero-api/policy_output.h"
 #include "alpha-zero-api/ring_buffer.h"
@@ -17,6 +20,10 @@
 
 namespace {
 
+using ::az::game::api::CompactPolicyOutputBlob;
+using ::az::game::api::CompactPolicyTargetBlob;
+using ::az::game::api::DefaultCompactPolicyOutputDeserializer;
+using ::az::game::api::DefaultCompactPolicyOutputSerializer;
 using ::az::game::api::DefaultPolicyOutputSerializer;
 using ::az::game::api::Evaluation;
 using ::az::game::api::RingBuffer;
@@ -140,6 +147,92 @@ int main() {
     std::cerr << "Error: undo did not restore round counter." << std::endl;
     return 1;
   }
+
+  // Step 6: round-trip the same game state through the compact policy
+  // serializer / deserializer and verify the recovered probabilities
+  // match the input.
+  static_assert(
+      TttGame::kMaxLegalActions == TttGame::kPolicySize,
+      "Tic-tac-toe is dense; kMaxLegalActions should equal kPolicySize.");
+  const std::vector<TttAction> mid_actions = game.ValidActions();
+  if (mid_actions.empty() || mid_actions.size() >= TttGame::kPolicySize) {
+    std::cerr << "Error: expected a mid-game state with "
+                 "0 < |ValidActions()| < kPolicySize for the compact test."
+              << std::endl;
+    return 1;
+  }
+
+  std::vector<float> mid_pi;
+  mid_pi.reserve(mid_actions.size());
+  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+    mid_pi.push_back(static_cast<float>(i + 1));
+  }
+  float mid_pi_sum = 0.0f;
+  for (const float v : mid_pi) {
+    mid_pi_sum += v;
+  }
+  for (float& v : mid_pi) {
+    v /= mid_pi_sum;
+  }
+  const TrainingTarget mid_target{0.25f, mid_pi};
+
+  const DefaultCompactPolicyOutputSerializer<TttGame> compact_serializer;
+  const CompactPolicyTargetBlob compact_blob =
+      compact_serializer.SerializePolicyOutput(game, mid_target);
+  if (compact_blob.count != mid_actions.size()) {
+    std::cerr << "Error: compact serializer count mismatch." << std::endl;
+    return 1;
+  }
+  if (compact_blob.legal_indices.size() != mid_actions.size() ||
+      compact_blob.values.size() != mid_actions.size()) {
+    std::cerr << "Error: compact serializer vector sizes mismatch."
+              << std::endl;
+    return 1;
+  }
+  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+    if (compact_blob.legal_indices[i] != game.PolicyIndex(mid_actions[i])) {
+      std::cerr << "Error: compact serializer index mismatch at " << i
+                << "." << std::endl;
+      return 1;
+    }
+    if (std::fabs(compact_blob.values[i] - mid_pi[i]) > 1e-6f) {
+      std::cerr << "Error: compact serializer value mismatch at " << i
+                << "." << std::endl;
+      return 1;
+    }
+  }
+
+  const DefaultCompactPolicyOutputDeserializer<TttGame> compact_deserializer;
+  const CompactPolicyOutputBlob compact_output{
+      compact_blob.value, std::span<const std::size_t>{compact_blob.legal_indices},
+      std::span<const float>{compact_blob.values}};
+  const auto compact_decoded =
+      compact_deserializer.Deserialize(game, compact_output);
+  if (!compact_decoded.has_value()) {
+    std::cerr << "Error: compact deserializer rejected its own serializer's "
+                 "output: "
+              << compact_decoded.error() << std::endl;
+    return 1;
+  }
+  if (compact_decoded->probabilities.size() != mid_actions.size()) {
+    std::cerr << "Error: compact deserializer probability size mismatch."
+              << std::endl;
+    return 1;
+  }
+  if (std::fabs(compact_decoded->value - mid_target.z) > 1e-6f) {
+    std::cerr << "Error: compact deserializer value mismatch." << std::endl;
+    return 1;
+  }
+  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+    if (std::fabs(compact_decoded->probabilities[i] - mid_pi[i]) > 1e-6f) {
+      std::cerr << "Error: compact round-trip mismatch at action " << i
+                << "." << std::endl;
+      return 1;
+    }
+  }
+  std::cout << "Compact round-trip recovered " << compact_decoded->probabilities.size()
+            << " probabilities for " << mid_actions.size() << " legal actions."
+            << std::endl;
 
   return 0;
 }

@@ -36,6 +36,34 @@ class IPolicyOutputDeserializer {
       const G& game, std::span<const float> output) const noexcept = 0;
 };
 
+/**
+ * @brief Compact policy-output deserializer.
+ *
+ * Reads a `CompactPolicyOutputBlob` (one value scalar + a row of
+ * length `legal_indices.size()`) and produces an `Evaluation` whose
+ * `probabilities[i]` is the prior for `game.ValidActions()[i]`. The
+ * deserializer is responsible for reordering from `legal_indices`
+ * order into `ValidActions()` order via `PolicyIndex`.
+ *
+ * Compact heads typically emit logits, so the canonical implementation
+ * applies softmax over `values`. Document explicitly which side
+ * normalizes — like the dense interface, it must match between
+ * serializer and deserializer.
+ *
+ * @tparam G Concrete game type satisfying the `Game` concept.
+ * @tparam E Error type returned on malformed input. Implementations
+ *   typically use the game's own `error_t`.
+ */
+template <Game G, typename E>
+class ICompactPolicyOutputDeserializer {
+ public:
+  virtual ~ICompactPolicyOutputDeserializer() = default;
+
+  [[nodiscard]] virtual std::expected<Evaluation, E> Deserialize(
+      const G& game,
+      const CompactPolicyOutputBlob& output) const noexcept = 0;
+};
+
 }  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_

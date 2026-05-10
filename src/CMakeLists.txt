@@ -39,6 +39,11 @@ install(
   DESTINATION include/alpha-zero-api
   COMPONENT api)
 
+# `ICompactPolicyOutputSerializer` / `ICompactPolicyOutputDeserializer` live in
+# the existing serializer.h / deserializer.h headers above and ship as part of
+# the `api` component. The compact *defaults* are gated on `-DDEFAULTS=ON`
+# below.
+
 # ============================ Component: Defaults =============================
 
 if(DEFAULTS)
@@ -60,6 +65,8 @@ if(DEFAULTS)
   install(
     FILES include/alpha-zero-api/defaults/serializer.h include/alpha-zero-api/defaults/game.h
           include/alpha-zero-api/defaults/deserializer.h
+          include/alpha-zero-api/defaults/compact_serializer.h
+          include/alpha-zero-api/defaults/compact_deserializer.h
     DESTINATION include/alpha-zero-api/defaults
     COMPONENT defaults)
 endif() # DEFAULTS

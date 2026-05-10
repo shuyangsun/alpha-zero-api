@@ -52,6 +52,27 @@ class IPolicyOutputSerializer {
       const G& game, const TrainingTarget& target) const noexcept = 0;
 };
 
+/**
+ * @brief Compact policy-output serializer.
+ *
+ * Returns a `CompactPolicyTargetBlob` whose `legal_indices` correspond
+ * to `game.ValidActions()` via `game.PolicyIndex(a)`, and whose
+ * `values[i]` mirrors `target.pi[i]`. `count == game.ValidActions().size()`.
+ *
+ * Use this instead of `IPolicyOutputSerializer` when the network's
+ * policy head is compact (width proportional to `G::kMaxLegalActions`).
+ * Both interfaces are first-class — implementations should pick exactly
+ * one and ignore the other.
+ */
+template <Game G>
+class ICompactPolicyOutputSerializer {
+ public:
+  virtual ~ICompactPolicyOutputSerializer() = default;
+
+  [[nodiscard]] virtual CompactPolicyTargetBlob SerializePolicyOutput(
+      const G& game, const TrainingTarget& target) const noexcept = 0;
+};
+
 }  // namespace az::game::api
 
 #endif  // ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_SERIALIZER_H_

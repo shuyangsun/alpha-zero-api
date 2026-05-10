@@ -33,6 +33,14 @@ namespace az::game::api {
  *     action space, ignoring legality. The bijection between an
  *     `action_t` value and a slot in `[0, kPolicySize)` is given by
  *     `PolicyIndex(a)`.
+ *   - A static `kMaxLegalActions` declaring the per-state upper bound
+ *     on `|ValidActions()|` across all reachable states. Must satisfy
+ *     `kMaxLegalActions <= kPolicySize`. Dense games set
+ *     `kMaxLegalActions == kPolicySize`; games with a much smaller
+ *     legal-action ceiling can size a compact policy head against
+ *     this constant. The concept enforces only the type — the
+ *     `<= kPolicySize` invariant is a documented contract checked by
+ *     the dense default policy serializer.
  *   - A static `kMaxRounds` declaring an optional self-play hard cap.
  *     If set, `IsOver()` must return true once
  *     `CurrentRound() >= *kMaxRounds`. The cap exists so pathological
@@ -67,6 +75,7 @@ concept Game = requires(G g, const G cg, typename G::action_t a,
   // static contract
   { G::kHistoryLookback } -> std::convertible_to<std::size_t>;
   { G::kPolicySize } -> std::convertible_to<std::size_t>;
+  { G::kMaxLegalActions } -> std::convertible_to<std::size_t>;
   { G::kMaxRounds } -> std::convertible_to<std::optional<uint32_t>>;
 
   // observers

@@ -65,6 +65,10 @@ class TttGame {
   // The action space is the 9 cells of the board.
   static constexpr std::size_t kPolicySize = TTT_CELLS;
 
+  // TTT is a dense game: every empty cell is a legal action, so the
+  // legal-action ceiling matches the full action space.
+  static constexpr std::size_t kMaxLegalActions = TTT_CELLS;
+
   // The game can never run longer than 9 plies.
   static constexpr std::optional<uint32_t> kMaxRounds =
       static_cast<uint32_t>(TTT_CELLS);
