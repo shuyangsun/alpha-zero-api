@@ -1,6 +1,7 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_DESERIALIZER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_DESERIALIZER_H_
 
+#include <array>
 #include <cstddef>
 #include <expected>
 #include <format>
@@ -21,7 +22,7 @@ namespace az::game::api {
  * Expects `output.size() == G::kPolicySize + 1`, with `output[0]`
  * carrying the value scalar and `output[1 + i]` carrying the prior
  * for policy slot `i`. Reads the masked subset corresponding to
- * `game.ValidActions()` via `game.PolicyIndex(action)`, and returns
+ * `game.ValidActionsInto(...)` via `game.PolicyIndex(action)`, and returns
  * those probabilities verbatim — no implicit softmax or
  * renormalization. Callers whose networks emit logits should compose
  * a softmax in their own deserializer.
@@ -45,11 +46,12 @@ class DefaultPolicyOutputDeserializer
           "Neural network output size {} does not match the expected size {}.",
           output.size(), expected_size));
     }
-    const auto actions = game.ValidActions();
+    std::array<typename G::action_t, G::kMaxLegalActions> actions{};
+    const std::size_t count = game.ValidActionsInto(actions);
     std::vector<float> probs;
-    probs.reserve(actions.size());
-    for (const auto& a : actions) {
-      probs.push_back(output[1 + game.PolicyIndex(a)]);
+    probs.reserve(count);
+    for (std::size_t i = 0; i < count; ++i) {
+      probs.push_back(output[1 + game.PolicyIndex(actions[i])]);
     }
     return Evaluation{output.front(), std::move(probs)};
   }

@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <unordered_map>
@@ -26,22 +27,24 @@ std::vector<std::pair<TttGame, TrainingTarget>> TttTrainingAugmenter::Augment(
   std::vector<std::pair<TttGame, TrainingTarget>> result;
   result.reserve(augmented.size());
 
-  const auto orig_actions = game.ValidActions();
-  assert(target.pi.size() == orig_actions.size());
+  std::array<TttAction, TttGame::kMaxLegalActions> orig_actions{};
+  const std::size_t orig_count = game.ValidActionsInto(orig_actions);
+  assert(target.pi.size() == orig_count);
 
   std::unordered_map<std::size_t, std::size_t> orig_index;
-  orig_index.reserve(orig_actions.size());
-  for (std::size_t i = 0; i < orig_actions.size(); ++i) {
+  orig_index.reserve(orig_count);
+  for (std::size_t i = 0; i < orig_count; ++i) {
     orig_index.emplace(game.PolicyIndex(orig_actions[i]), i);
   }
 
   for (std::size_t i = 0; i < augmented.size(); ++i) {
     const auto sym = static_cast<Augmentation>(i);
     TttGame& aug_game = augmented[i];
-    const auto aug_actions = aug_game.ValidActions();
+    std::array<TttAction, TttGame::kMaxLegalActions> aug_actions{};
+    const std::size_t aug_count = aug_game.ValidActionsInto(aug_actions);
 
-    std::vector<float> aug_pi(aug_actions.size(), 0.0f);
-    for (std::size_t j = 0; j < aug_actions.size(); ++j) {
+    std::vector<float> aug_pi(aug_count, 0.0f);
+    for (std::size_t j = 0; j < aug_count; ++j) {
       const TttAction original_action =
           InverseTransformAction(aug_actions[j], sym);
       const std::size_t key = game.PolicyIndex(original_action);

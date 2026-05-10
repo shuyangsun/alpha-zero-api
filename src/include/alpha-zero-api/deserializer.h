@@ -13,9 +13,9 @@ namespace az::game::api {
  * @brief Decode a network forward-pass into an `Evaluation`.
  *
  * Implementations gather the masked subset of policy logits/probs
- * corresponding to `game.ValidActions()` (typically via
- * `game.PolicyIndex(a)`) and produce probabilities sized to
- * `ValidActions().size()`.
+ * corresponding to `game.ValidActionsInto(...)` (typically via
+ * `game.PolicyIndex(a)`) and produce probabilities sized to the returned
+ * legal-action count.
  *
  * The signature takes `std::span<const float>`, so callers must
  * up-convert FP16/BF16 outputs to FP32 before invoking the
@@ -41,9 +41,10 @@ class IPolicyOutputDeserializer {
  *
  * Reads a `CompactPolicyOutputBlob` (one value scalar + a row of
  * length `legal_indices.size()`) and produces an `Evaluation` whose
- * `probabilities[i]` is the prior for `game.ValidActions()[i]`. The
- * deserializer is responsible for reordering from `legal_indices`
- * order into `ValidActions()` order via `PolicyIndex`.
+ * `probabilities[i]` is the prior for the i-th action written by
+ * `game.ValidActionsInto(...)`. The deserializer is responsible for
+ * reordering from `legal_indices` order into `ValidActionsInto` order via
+ * `PolicyIndex`.
  *
  * Compact heads typically emit logits, so the canonical implementation
  * applies softmax over `values`. Document explicitly which side

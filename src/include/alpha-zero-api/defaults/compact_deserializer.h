@@ -1,6 +1,7 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_COMPACT_DESERIALIZER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_COMPACT_DESERIALIZER_H_
 
+#include <array>
 #include <cstddef>
 #include <expected>
 #include <string>
@@ -22,8 +23,9 @@ namespace az::game::api {
  * `output.legal_indices[j]`. Padding entries
  * (`legal_indices[j] == CompactPolicyTargetBlob::kPaddingSlot`) are
  * skipped. The result's `probabilities[i]` is the weight associated
- * with `game.PolicyIndex(game.ValidActions()[i])`, gathered back into
- * `ValidActions()` order. Returns probabilities verbatim — no implicit
+ * with `game.PolicyIndex(actions[i])`, where `actions[0..count)` is filled
+ * by `game.ValidActionsInto(actions)`, gathered back into that order.
+ * Returns probabilities verbatim — no implicit
  * softmax or renormalization. Callers whose networks emit logits should
  * compose a softmax in their own deserializer.
  *
@@ -49,9 +51,10 @@ class DefaultCompactPolicyOutputDeserializer
       return std::unexpected<std::string>(
           "compact output indices/values size mismatch");
     }
-    const auto actions = game.ValidActions();
-    std::vector<float> probs(actions.size(), 0.0f);
-    for (std::size_t i = 0; i < actions.size(); ++i) {
+    std::array<typename G::action_t, G::kMaxLegalActions> actions{};
+    const std::size_t count = game.ValidActionsInto(actions);
+    std::vector<float> probs(count, 0.0f);
+    for (std::size_t i = 0; i < count; ++i) {
       const std::size_t slot = game.PolicyIndex(actions[i]);
       bool found = false;
       for (std::size_t j = 0; j < output.legal_indices.size(); ++j) {

@@ -1,6 +1,7 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
 
+#include <array>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -9,7 +10,6 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <vector>
 
 namespace az::game::api {
 
@@ -34,7 +34,7 @@ namespace az::game::api {
  *     `action_t` value and a slot in `[0, kPolicySize)` is given by
  *     `PolicyIndex(a)`.
  *   - A static `kMaxLegalActions` declaring the per-state upper bound
- *     on `|ValidActions()|` across all reachable states. Must satisfy
+ *     on `|ValidActionsInto(...)|` across all reachable states. Must satisfy
  *     `kMaxLegalActions <= kPolicySize`. Dense games set
  *     `kMaxLegalActions == kPolicySize`; games with a much smaller
  *     legal-action ceiling can size a compact policy head against
@@ -46,7 +46,7 @@ namespace az::game::api {
  *     `CurrentRound() >= *kMaxRounds`. The cap exists so pathological
  *     loops in early-iteration networks still terminate.
  *   - The usual observers (`GetBoard`, `CurrentRound`, `CurrentPlayer`,
- *     `LastPlayer`, `LastAction`, `CanonicalBoard`, `ValidActions`,
+ *     `LastPlayer`, `LastAction`, `CanonicalBoard`, `ValidActionsInto`,
  *     `IsOver`, `GetScore`).
  *   - Human-readable I/O (`BoardReadableString`, `ActionToString`,
  *     `ActionFromString`).
@@ -58,14 +58,16 @@ namespace az::game::api {
  * defined below and implemented once for any conforming `G`. Concrete
  * games never implement it themselves.
  *
- * `ValidActions()` must return a deterministic ordering that depends
- * only on the game state — a training tuple `(s, π, z)` written under
- * one ordering and replayed against a network trained under another
- * is corrupt.
+ * `ValidActionsInto(out)` writes legal actions into `out[0..count)` and
+ * returns `count`. The ordering must be deterministic and depend only on
+ * the game state — a training tuple `(s, π, z)` written under one ordering
+ * and replayed against a network trained under another is corrupt.
  */
 template <typename G>
 concept Game = requires(G g, const G cg, typename G::action_t a,
-                        typename G::player_t p) {
+                        typename G::player_t p,
+                        std::array<typename G::action_t, G::kMaxLegalActions>&
+                            valid_actions) {
   // associated types
   typename G::board_t;
   typename G::action_t;
@@ -85,7 +87,7 @@ concept Game = requires(G g, const G cg, typename G::action_t a,
   { cg.LastPlayer() } -> std::same_as<std::optional<typename G::player_t>>;
   { cg.LastAction() } -> std::same_as<std::optional<typename G::action_t>>;
   { cg.CanonicalBoard() } -> std::convertible_to<typename G::board_t>;
-  { cg.ValidActions() } -> std::same_as<std::vector<typename G::action_t>>;
+  { cg.ValidActionsInto(valid_actions) } -> std::same_as<std::size_t>;
   { cg.IsOver() } -> std::same_as<bool>;
   { cg.GetScore(p) } -> std::same_as<float>;
 

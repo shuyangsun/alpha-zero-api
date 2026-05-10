@@ -1,6 +1,7 @@
 #include "tic_tac_toe/deserializer.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <expected>
@@ -46,11 +47,12 @@ TttResult<Evaluation> TttDeserializer::Deserialize(
   if (output.size() != TttGame::kPolicySize + 1) {
     return std::unexpected(TttError::kInvalidPolicyOutputSize);
   }
-  const auto actions = game.ValidActions();
+  std::array<TttAction, TttGame::kMaxLegalActions> actions{};
+  const std::size_t count = game.ValidActionsInto(actions);
   std::vector<float> raw;
-  raw.reserve(actions.size());
-  for (const auto& action : actions) {
-    const std::size_t idx = game.PolicyIndex(action);
+  raw.reserve(count);
+  for (std::size_t i = 0; i < count; ++i) {
+    const std::size_t idx = game.PolicyIndex(actions[i]);
     raw.push_back(output[1 + idx]);
   }
   return Evaluation{output.front(), Softmax(raw)};

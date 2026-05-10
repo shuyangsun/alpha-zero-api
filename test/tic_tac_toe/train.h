@@ -15,8 +15,8 @@ namespace az::game::api::test {
  *
  * Returns 12 `(augmented_game, augmented_target)` pairs in the order
  * given by `internal::Augmentation`. Each pair's `pi[i]` corresponds
- * to `augmented_game.ValidActions()[i]`; `target.z` is preserved
- * unchanged.
+ * to the i-th action written by `augmented_game.ValidActionsInto(...)`;
+ * `target.z` is preserved unchanged.
  */
 class TttTrainingAugmenter : public ITrainingAugmenter<TttGame> {
  public:

@@ -9,7 +9,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "alpha-zero-api/game.h"
 
@@ -148,17 +147,18 @@ TttBoard TttGame::CanonicalBoard() const noexcept {
   return result;
 }
 
-std::vector<TttAction> TttGame::ValidActions() const noexcept {
-  std::vector<TttAction> actions;
-  actions.reserve(TTT_CELLS);
+std::size_t TttGame::ValidActionsInto(
+    std::array<TttAction, TTT_CELLS>& out) const noexcept {
+  std::size_t count = 0;
   for (uint16_t r = 0; r < TTT_ROWS; ++r) {
     for (uint16_t c = 0; c < TTT_COLS; ++c) {
       if (board_[r][c] == 0) {
-        actions.push_back(TttAction{r, c});
+        out[count] = TttAction{r, c};
+        ++count;
       }
     }
   }
-  return actions;
+  return count;
 }
 
 bool TttGame::IsOver() const noexcept {

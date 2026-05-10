@@ -36,7 +36,8 @@ class IGameSerializer {
  * @brief Serialize a `TrainingTarget` to the neural network's output
  * layout.
  *
- * `target.pi[i]` corresponds to `game.ValidActions()[i]`; the
+ * `target.pi[i]` corresponds to the i-th action written by
+ * `game.ValidActionsInto(...)`; the
  * implementation is responsible for scattering those values into the
  * fixed-size policy output via `game.PolicyIndex(action)`. The
  * resulting vector typically has size `G::kPolicySize + value_dim` —
@@ -56,8 +57,9 @@ class IPolicyOutputSerializer {
  * @brief Compact policy-output serializer.
  *
  * Returns a `CompactPolicyTargetBlob` whose `legal_indices` correspond
- * to `game.ValidActions()` via `game.PolicyIndex(a)`, and whose
- * `values[i]` mirrors `target.pi[i]`. `count == game.ValidActions().size()`.
+ * to `game.ValidActionsInto(...)` via `game.PolicyIndex(a)`, and whose
+ * `values[i]` mirrors `target.pi[i]`. `count` is the returned legal-action
+ * count.
  *
  * Use this instead of `IPolicyOutputSerializer` when the network's
  * policy head is compact (width proportional to `G::kMaxLegalActions`).

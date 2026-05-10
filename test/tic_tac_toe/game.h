@@ -8,7 +8,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "alpha-zero-api/defaults/game.h"
 #include "alpha-zero-api/game.h"
@@ -109,7 +108,8 @@ class TttGame {
   [[nodiscard]] std::optional<TttPlayer> LastPlayer() const noexcept;
   [[nodiscard]] std::optional<TttAction> LastAction() const noexcept;
   [[nodiscard]] TttBoard CanonicalBoard() const noexcept;
-  [[nodiscard]] std::vector<TttAction> ValidActions() const noexcept;
+  [[nodiscard]] std::size_t ValidActionsInto(
+      std::array<TttAction, TTT_CELLS>& out) const noexcept;
   [[nodiscard]] bool IsOver() const noexcept;
   [[nodiscard]] float GetScore(const TttPlayer& player) const noexcept;
 
@@ -128,7 +128,7 @@ class TttGame {
    * @brief Apply `action` for the current player in place.
    *
    * Caller is responsible for passing a valid action (one of those
-   * returned by `ValidActions()`). No validation is performed; the
+   * returned by `ValidActionsInto`). No validation is performed; the
    * MCTS hot loop must not pay for it.
    */
   void ApplyActionInPlace(const TttAction& action) noexcept;

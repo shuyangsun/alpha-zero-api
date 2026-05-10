@@ -37,10 +37,11 @@ class IInferenceAugmenter {
    *
    * `augmented` and `evaluations` are aligned: `evaluations[i]`
    * corresponds to `augmented[i]`. `evaluations[i].probabilities[j]`
-   * is the prior for `augmented[i].ValidActions()[j]` — the
+   * is the prior for the j-th action written by
+   * `augmented[i].ValidActionsInto(...)` — the
    * implementation is responsible for inverting whatever symmetry it
    * applied so the returned `Evaluation`'s probabilities align with
-   * `original.ValidActions()`.
+   * `original.ValidActionsInto(...)`.
    */
   [[nodiscard]] virtual Evaluation Interpret(
       const G& original, std::span<const G> augmented,
@@ -52,8 +53,9 @@ class IInferenceAugmenter {
  *
  * Returns a vector of `(augmented_game, augmented_target)` pairs
  * derived from `(game, target)`. The augmented target's `pi[i]`
- * corresponds to `augmented_game.ValidActions()[i]`. `target.z` is
- * preserved unchanged (board symmetries are score-preserving).
+ * corresponds to the i-th action written by
+ * `augmented_game.ValidActionsInto(...)`. `target.z` is preserved
+ * unchanged (board symmetries are score-preserving).
  *
  * Convention: result includes the identity — typically as the first
  * element, though callers should not rely on order.

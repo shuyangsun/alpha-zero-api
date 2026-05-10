@@ -92,11 +92,11 @@ int main() {
   std::vector<Evaluation> augmented_evaluations;
   augmented_evaluations.reserve(augmented_games.size());
   for (const TttGame& aug_game : augmented_games) {
-    const std::vector<TttAction> aug_actions = aug_game.ValidActions();
+    std::array<TttAction, TttGame::kMaxLegalActions> aug_actions{};
+    const std::size_t aug_count = aug_game.ValidActionsInto(aug_actions);
     const TrainingTarget fake_target{
         0.5f,
-        std::vector<float>(aug_actions.size(),
-                           1.0f / static_cast<float>(aug_actions.size()))};
+        std::vector<float>(aug_count, 1.0f / static_cast<float>(aug_count))};
     const std::vector<float> nn_output =
         policy_serializer.SerializePolicyOutput(aug_game, fake_target);
     const TttResult<Evaluation> decoded =
@@ -106,7 +106,7 @@ int main() {
                 << std::endl;
       return 1;
     }
-    assert(decoded->probabilities.size() == aug_actions.size());
+    assert(decoded->probabilities.size() == aug_count);
     augmented_evaluations.push_back(*decoded);
   }
   std::cout << "Serialized policy output vector length: "
@@ -118,10 +118,11 @@ int main() {
       inference.Interpret(game, std::span<const TttGame>{augmented_games},
                           std::span<const Evaluation>{augmented_evaluations});
 
-  const std::vector<TttAction> valid_actions = game.ValidActions();
+  std::array<TttAction, TttGame::kMaxLegalActions> valid_actions{};
+  const std::size_t valid_count = game.ValidActionsInto(valid_actions);
   TttAction next = TttAction{0, 0};
   float max_prob = -1.0f;
-  for (std::size_t i = 0; i < valid_actions.size(); ++i) {
+  for (std::size_t i = 0; i < valid_count; ++i) {
     if (combined.probabilities[i] > max_prob) {
       next = valid_actions[i];
       max_prob = combined.probabilities[i];
@@ -154,17 +155,18 @@ int main() {
   static_assert(
       TttGame::kMaxLegalActions == TttGame::kPolicySize,
       "Tic-tac-toe is dense; kMaxLegalActions should equal kPolicySize.");
-  const std::vector<TttAction> mid_actions = game.ValidActions();
-  if (mid_actions.empty() || mid_actions.size() >= TttGame::kPolicySize) {
+  std::array<TttAction, TttGame::kMaxLegalActions> mid_actions{};
+  const std::size_t mid_count = game.ValidActionsInto(mid_actions);
+  if (mid_count == 0 || mid_count >= TttGame::kPolicySize) {
     std::cerr << "Error: expected a mid-game state with "
-                 "0 < |ValidActions()| < kPolicySize for the compact test."
+                 "0 < legal action count < kPolicySize for the compact test."
               << std::endl;
     return 1;
   }
 
   std::vector<float> mid_pi;
-  mid_pi.reserve(mid_actions.size());
-  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+  mid_pi.reserve(mid_count);
+  for (std::size_t i = 0; i < mid_count; ++i) {
     mid_pi.push_back(static_cast<float>(i + 1));
   }
   float mid_pi_sum = 0.0f;
@@ -179,17 +181,17 @@ int main() {
   const DefaultCompactPolicyOutputSerializer<TttGame> compact_serializer;
   const CompactPolicyTargetBlob compact_blob =
       compact_serializer.SerializePolicyOutput(game, mid_target);
-  if (compact_blob.count != mid_actions.size()) {
+  if (compact_blob.count != mid_count) {
     std::cerr << "Error: compact serializer count mismatch." << std::endl;
     return 1;
   }
-  if (compact_blob.legal_indices.size() != mid_actions.size() ||
-      compact_blob.values.size() != mid_actions.size()) {
+  if (compact_blob.legal_indices.size() != mid_count ||
+      compact_blob.values.size() != mid_count) {
     std::cerr << "Error: compact serializer vector sizes mismatch."
               << std::endl;
     return 1;
   }
-  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+  for (std::size_t i = 0; i < mid_count; ++i) {
     if (compact_blob.legal_indices[i] != game.PolicyIndex(mid_actions[i])) {
       std::cerr << "Error: compact serializer index mismatch at " << i
                 << "." << std::endl;
@@ -214,7 +216,7 @@ int main() {
               << compact_decoded.error() << std::endl;
     return 1;
   }
-  if (compact_decoded->probabilities.size() != mid_actions.size()) {
+  if (compact_decoded->probabilities.size() != mid_count) {
     std::cerr << "Error: compact deserializer probability size mismatch."
               << std::endl;
     return 1;
@@ -223,16 +225,16 @@ int main() {
     std::cerr << "Error: compact deserializer value mismatch." << std::endl;
     return 1;
   }
-  for (std::size_t i = 0; i < mid_actions.size(); ++i) {
+  for (std::size_t i = 0; i < mid_count; ++i) {
     if (std::fabs(compact_decoded->probabilities[i] - mid_pi[i]) > 1e-6f) {
       std::cerr << "Error: compact round-trip mismatch at action " << i
                 << "." << std::endl;
       return 1;
     }
   }
-  std::cout << "Compact round-trip recovered " << compact_decoded->probabilities.size()
-            << " probabilities for " << mid_actions.size() << " legal actions."
-            << std::endl;
+  std::cout << "Compact round-trip recovered "
+            << compact_decoded->probabilities.size() << " probabilities for "
+            << mid_count << " legal actions." << std::endl;
 
   return 0;
 }

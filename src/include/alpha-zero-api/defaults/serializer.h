@@ -1,6 +1,7 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_SERIALIZER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_SERIALIZER_H_
 
+#include <array>
 #include <cstddef>
 #include <vector>
 
@@ -19,8 +20,8 @@ namespace az::game::api {
  * policy. Slots not corresponding to a legal action are left at 0.
  *
  * `target.pi[i]` is written into slot `1 + game.PolicyIndex(actions[i])`,
- * where `actions = game.ValidActions()`. Caller must ensure
- * `target.pi.size() == actions.size()`.
+ * where `actions[0..count)` is filled by `game.ValidActionsInto(actions)`.
+ * Caller must ensure `target.pi.size() == count`.
  */
 template <Game G>
 class DefaultPolicyOutputSerializer : public IPolicyOutputSerializer<G> {
@@ -32,8 +33,9 @@ class DefaultPolicyOutputSerializer : public IPolicyOutputSerializer<G> {
       const G& game, const TrainingTarget& target) const noexcept final {
     std::vector<float> result(G::kPolicySize + 1, 0.0f);
     result[0] = target.z;
-    const auto actions = game.ValidActions();
-    for (std::size_t i = 0; i < actions.size(); ++i) {
+    std::array<typename G::action_t, G::kMaxLegalActions> actions{};
+    const std::size_t count = game.ValidActionsInto(actions);
+    for (std::size_t i = 0; i < count; ++i) {
       const std::size_t idx = game.PolicyIndex(actions[i]);
       result[1 + idx] = target.pi[i];
     }

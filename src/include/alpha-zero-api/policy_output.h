@@ -19,8 +19,8 @@ namespace az::game::api {
  *   - `value` is in `[-1, +1]`, from the **current player's**
  *     perspective.
  *   - `probabilities[i]` is the prior for the action at
- *     `game.ValidActions()[i]`. Length always matches the number of
- *     legal actions on the current state.
+ *     the i-th action written by `game.ValidActionsInto(...)`. Length
+ *     always matches the number of legal actions on the current state.
  *
  * Deserializers produce `Evaluation`. The split between this type and
  * `TrainingTarget` makes the
@@ -42,9 +42,9 @@ struct Evaluation {
  *     **current player's** perspective at the time this state was
  *     recorded — produced by `GetScore(state.CurrentPlayer())` once
  *     the playout finishes.
- *   - `pi[i]` is the MCTS visit-count distribution for the action at
- *     `game.ValidActions()[i]`. The vector sums to 1 and has length
- *     equal to `ValidActions().size()`.
+ *   - `pi[i]` is the MCTS visit-count distribution for the i-th action
+ *     written by `game.ValidActionsInto(...)`. The vector sums to 1 and
+ *     has length equal to the returned legal-action count.
  *
  * Policy-output serializers consume `TrainingTarget`. The fixed-size
  * network output is laid out via `game.PolicyIndex(action)`; see

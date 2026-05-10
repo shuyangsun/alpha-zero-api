@@ -1,5 +1,6 @@
 #include "inference.h"
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <span>
@@ -32,17 +33,18 @@ Evaluation TttInferenceAugmenter::Interpret(
   assert(augmented.size() == evaluations.size());
   assert(!augmented.empty());
 
-  const auto orig_actions = original.ValidActions();
+  std::array<TttAction, TttGame::kMaxLegalActions> orig_actions{};
+  const std::size_t orig_count = original.ValidActionsInto(orig_actions);
 
   std::unordered_map<std::size_t, std::size_t> action_index_map;
-  action_index_map.reserve(orig_actions.size());
-  for (std::size_t i = 0; i < orig_actions.size(); ++i) {
+  action_index_map.reserve(orig_count);
+  for (std::size_t i = 0; i < orig_count; ++i) {
     action_index_map.emplace(original.PolicyIndex(orig_actions[i]), i);
   }
 
   const float n = static_cast<float>(augmented.size());
   float values_sum = 0.0f;
-  std::vector<float> probs(orig_actions.size(), 0.0f);
+  std::vector<float> probs(orig_count, 0.0f);
 
   for (std::size_t i = 0; i < augmented.size(); ++i) {
     const auto sym = static_cast<Augmentation>(i);
@@ -51,10 +53,11 @@ Evaluation TttInferenceAugmenter::Interpret(
 
     values_sum += eval.value;
 
-    const auto aug_actions = aug_game.ValidActions();
-    assert(aug_actions.size() == eval.probabilities.size());
+    std::array<TttAction, TttGame::kMaxLegalActions> aug_actions{};
+    const std::size_t aug_count = aug_game.ValidActionsInto(aug_actions);
+    assert(aug_count == eval.probabilities.size());
 
-    for (std::size_t j = 0; j < aug_actions.size(); ++j) {
+    for (std::size_t j = 0; j < aug_count; ++j) {
       const TttAction original_action =
           InverseTransformAction(aug_actions[j], sym);
       const std::size_t key = original.PolicyIndex(original_action);
