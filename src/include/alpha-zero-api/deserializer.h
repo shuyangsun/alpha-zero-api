@@ -2,7 +2,6 @@
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DESERIALIZER_H_
 
 #include <expected>
-#include <format>
 #include <span>
 
 #include "alpha-zero-api/game.h"
@@ -11,47 +10,30 @@
 namespace az::game::api {
 
 /**
- * @brief Deserializes output from the neural network to a PolicyOutput object.
+ * @brief Decode a network forward-pass into an `Evaluation`.
  *
- * Use DefaultPolicyOutputDeserializer is for neural networks with
- * single-precision floating point number output.
+ * Implementations gather the masked subset of policy logits/probs
+ * corresponding to `game.ValidActions()` (typically via
+ * `game.PolicyIndex(a)`) and produce probabilities sized to
+ * `ValidActions().size()`.
  *
- * Both the value and probababilities vector in the PolicyOutput object should
- * be single-precision floating point values. The output of the neural network
- * can range from double precision to half or even quarter precision. The
- * deserializer should be able to handle different neural network output data
- * types.
+ * The signature takes `std::span<const float>`, so callers must
+ * up-convert FP16/BF16 outputs to FP32 before invoking the
+ * deserializer. Half-precision support, if needed, belongs in a
+ * dedicated overload taking `std::span<const std::byte>` plus a
+ * precision tag.
  *
- * @tparam B Type of board. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
- * @tparam A Type of a single action. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
- * @tparam P Type of player. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
- * @tparam E Type of error message when deserialization fails.
+ * @tparam G Concrete game type satisfying the `Game` concept.
+ * @tparam E Error type returned on malformed input. Implementations
+ *   typically use the game's own `error_t`.
  */
-template <typename B, typename A, typename P, typename E>
+template <Game G, typename E>
 class IPolicyOutputDeserializer {
  public:
   virtual ~IPolicyOutputDeserializer() = default;
 
-  /**
-   * @brief Deserializes the output from the neural network to a PolicyOutput.
-   *
-   * If the neural network output format is unexpected, return an error message.
-   * The PolicyOutput object's probabilities vector should match the legnth of
-   * the actions vector. If the length does not match, tests will fail and the
-   * library will throw an error.
-   *
-   * @param actions Actions passed in to the serializer to generated the neural
-   * network input that was used to generate this output.
-   * @param output Output of the neural network.
-   * @return std::expected<PolicyOutput, E> PolicyOutput object if the
-   * deserialization is successful, error type otherwise.
-   */
-  [[nodiscard]] virtual std::expected<PolicyOutput, E> Deserialize(
-      const B& board, const P& player, std::span<const A> actions,
-      std::span<const float> output) const noexcept = 0;
+  [[nodiscard]] virtual std::expected<Evaluation, E> Deserialize(
+      const G& game, std::span<const float> output) const noexcept = 0;
 };
 
 }  // namespace az::game::api

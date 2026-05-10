@@ -1,11 +1,8 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_AUGMENTER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_AUGMENTER_H_
 
-#include <cstdint>
-#include <memory>
 #include <span>
-#include <tuple>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "alpha-zero-api/game.h"
@@ -14,84 +11,60 @@
 namespace az::game::api {
 
 /**
- * @brief Augment the game before inference to reduce model bias.
+ * @brief Inference-time symmetry augmentation.
  *
- * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
- * @tparam A Type of a single action. See documentation for IGame in
- * api/cpp/game.h.
- * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
+ * `Augment` returns the set of equivalent positions the engine should
+ * evaluate; the engine runs each through the network and feeds the
+ * resulting `Evaluation`s back through `Interpret`, which combines
+ * them into a single evaluation for the original game.
+ *
+ * Convention: `augmented[0]` is the identity (`game` itself), so a
+ * game with no useful symmetry can return a one-element vector and
+ * `Interpret` becomes effectively the identity. Games like chess that
+ * have no exploitable board symmetry can supply a no-op augmenter
+ * built on this convention.
  */
-template <typename B, typename A, typename P>
+template <Game G>
 class IInferenceAugmenter {
  public:
-  /**
-   * @brief Augment the game state for inference.
-   *
-   * The function parameters are the same as Serializer<B, A, P>::Serialize.
-   * This is usually used to minimize the bias of the neural network. In the
-   * original AlphaGo Zero paper, each position is augmented 8 times.
-   *
-   * @param board Current game board.
-   * @param player Current player.
-   * @param actions Valid actions for current player.
-   * @return std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>> Map
-   * of augmented game state. The key is an identifier for the augmented game
-   * state, and the value is a tuple of the augmented board, player, and
-   * actions.
-   */
-  [[nodiscard]] virtual std::unordered_map<uint8_t,
-                                           std::tuple<B, P, std::vector<A>>>
-  Augment(const B& board, const P& player,
-          std::span<const A> actions) const noexcept = 0;
-
-  /**
-   * @brief Interpret the inference-time policy output from different augmented
-   * games. The order of the outputs corresponds to the order of augmented
-   * games.
-   *
-   * @param augmented_games The augmented game states that were generated from
-   * the Augment function.
-   * @param outputs The policy outputs for each augmented game. The key is the
-   * identifier for the augmented game, and the value is the policy output for
-   * that augmented game.
-   * @return PolicyOutput Interpreted policy output for the original game.
-   */
-  [[nodiscard]] virtual PolicyOutput Interpret(
-      const std::unordered_map<uint8_t, std::tuple<B, P, std::vector<A>>>&
-          augmented_games,
-      const std::unordered_map<uint8_t, PolicyOutput>& outputs)
-      const noexcept = 0;
-
   virtual ~IInferenceAugmenter() = default;
+
+  [[nodiscard]] virtual std::vector<G> Augment(
+      const G& game) const noexcept = 0;
+
+  /**
+   * @brief Combine per-augmentation evaluations back into one.
+   *
+   * `augmented` and `evaluations` are aligned: `evaluations[i]`
+   * corresponds to `augmented[i]`. `evaluations[i].probabilities[j]`
+   * is the prior for `augmented[i].ValidActions()[j]` — the
+   * implementation is responsible for inverting whatever symmetry it
+   * applied so the returned `Evaluation`'s probabilities align with
+   * `original.ValidActions()`.
+   */
+  [[nodiscard]] virtual Evaluation Interpret(
+      const G& original, std::span<const G> augmented,
+      std::span<const Evaluation> evaluations) const noexcept = 0;
 };
 
 /**
- * @brief Augment the game state and policy output for training.
+ * @brief Training-time symmetry augmentation.
  *
- * @tparam B Type of board. See documentation for IGame in api/cpp/game.h.
- * @tparam A Type of a single action. See documentation for IGame in
- * api/cpp/game.h.
- * @tparam P Type of player. See documentation for IGame in api/cpp/game.h.
+ * Returns a vector of `(augmented_game, augmented_target)` pairs
+ * derived from `(game, target)`. The augmented target's `pi[i]`
+ * corresponds to `augmented_game.ValidActions()[i]`. `target.z` is
+ * preserved unchanged (board symmetries are score-preserving).
+ *
+ * Convention: result includes the identity — typically as the first
+ * element, though callers should not rely on order.
  */
-template <typename B, typename A, typename P>
+template <Game G>
 class ITrainingAugmenter {
  public:
-  /**
-   * @brief Augment the game state and policy output for training.
-   *
-   * @param board Current game board.
-   * @param player Current player.
-   * @param actions Valid actions for current player.
-   * @param output Policy output for the current game state.
-   * @return std::vector<std::tuple<B, P, std::vector<A>, PolicyOutput>> Vector
-   * of augmented game states and policy output pairs.
-   */
-  [[nodiscard]] virtual std::vector<
-      std::tuple<B, P, std::vector<A>, PolicyOutput>>
-  Augment(const B& board, const P& player, std::span<const A> actions,
-          PolicyOutput&& output) const noexcept = 0;
-
   virtual ~ITrainingAugmenter() = default;
+
+  [[nodiscard]] virtual std::vector<std::pair<G, TrainingTarget>> Augment(
+      const G& game, const TrainingTarget& target) const noexcept = 0;
 };
 
 }  // namespace az::game::api

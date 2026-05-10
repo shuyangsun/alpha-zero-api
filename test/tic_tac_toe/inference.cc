@@ -1,15 +1,15 @@
 #include "inference.h"
 
 #include <cassert>
-#include <cstdint>
+#include <cstddef>
 #include <span>
-#include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "alpha-zero-api/policy_output.h"
 #include "augmentation.h"
-#include "game.h"
+#include "tic_tac_toe/game.h"
 
 namespace az::game::api::test {
 
@@ -17,112 +17,54 @@ namespace {
 
 using ::az::game::api::test::internal::AugmentAll;
 using ::az::game::api::test::internal::Augmentation;
-using ::az::game::api::test::internal::MirrorHorizontal;
-using ::az::game::api::test::internal::MirrorVertical;
-using ::az::game::api::test::internal::RotateCounterclockwise;
+using ::az::game::api::test::internal::InverseTransformAction;
 
 }  // namespace
 
-std::unordered_map<uint8_t,
-                   std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-TttInferenceAugmenter::Augment(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) const noexcept {
-  return internal::AugmentAll(board, player, actions);
+std::vector<TttGame> TttInferenceAugmenter::Augment(
+    const TttGame& game) const noexcept {
+  return AugmentAll(game);
 }
 
-PolicyOutput TttInferenceAugmenter::Interpret(
-    const std::unordered_map<
-        uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>&
-        augmented_games,
-    const std::unordered_map<uint8_t, PolicyOutput>& outputs) const noexcept {
-  using enum Augmentation;
+Evaluation TttInferenceAugmenter::Interpret(
+    const TttGame& original, std::span<const TttGame> augmented,
+    std::span<const Evaluation> evaluations) const noexcept {
+  assert(augmented.size() == evaluations.size());
+  assert(!augmented.empty());
 
-  assert(augmented_games.find(static_cast<uint8_t>(kOriginal)) !=
-         augmented_games.end());
-  assert(outputs.find(static_cast<uint8_t>(kOriginal)) != outputs.end());
+  const auto orig_actions = original.ValidActions();
 
-  std::unordered_map<uint8_t, size_t> action_index_map;
-  std::span<const TttAction> original_actions = std::get<2>(
-      augmented_games.find(static_cast<uint8_t>(kOriginal))->second);
-  action_index_map.reserve(original_actions.size());
-  for (size_t i = 0; i < original_actions.size(); ++i) {
-    const TttAction& action = original_actions[i];
-    action_index_map.emplace(action.row * TTT_COLS + action.col, i);
+  std::unordered_map<std::size_t, std::size_t> action_index_map;
+  action_index_map.reserve(orig_actions.size());
+  for (std::size_t i = 0; i < orig_actions.size(); ++i) {
+    action_index_map.emplace(original.PolicyIndex(orig_actions[i]), i);
   }
 
-  assert(augmented_games.size() == outputs.size());
-
+  const float n = static_cast<float>(augmented.size());
   float values_sum = 0.0f;
+  std::vector<float> probs(orig_actions.size(), 0.0f);
 
-  std::vector<float> probs;
+  for (std::size_t i = 0; i < augmented.size(); ++i) {
+    const auto sym = static_cast<Augmentation>(i);
+    const TttGame& aug_game = augmented[i];
+    const Evaluation& eval = evaluations[i];
 
-  for (const auto& [key, game] : augmented_games) {
-    const auto& [board, player, actions] = game;
-    values_sum += outputs.at(key).value;
+    values_sum += eval.value;
 
-    const PolicyOutput& policy_output = outputs.at(key);
+    const auto aug_actions = aug_game.ValidActions();
+    assert(aug_actions.size() == eval.probabilities.size());
 
-    for (size_t i = 0; i < actions.size(); ++i) {
-      if (probs.empty()) {
-        probs.resize(actions.size(), 0.0f);
-      } else {
-        assert(probs.size() == actions.size());
-      }
-      TttAction original_action = actions.at(i);
-      switch (static_cast<Augmentation>(key)) {
-        case kOriginal:
-          break;
-        case kRotate90:
-          original_action = RotateCounterclockwise(original_action, 1);
-          break;
-        case kRotate180:
-          original_action = RotateCounterclockwise(original_action, 2);
-          break;
-        case kRotate270:
-          original_action = RotateCounterclockwise(original_action, 3);
-          break;
-        case kMirrorHorizontal:
-          original_action = MirrorHorizontal(original_action);
-          break;
-        case kMirrorHorizontalRotate90:
-          original_action =
-              MirrorHorizontal(RotateCounterclockwise(original_action, 1));
-          break;
-        case kMirrorHorizontalRotate180:
-          original_action =
-              MirrorHorizontal(RotateCounterclockwise(original_action, 2));
-          break;
-        case kMirrorHorizontalRotate270:
-          original_action =
-              MirrorHorizontal(RotateCounterclockwise(original_action, 3));
-          break;
-        case kMirrorVertical:
-          original_action = MirrorVertical(original_action);
-          break;
-        case kMirrorVerticalRotate90:
-          original_action =
-              MirrorVertical(RotateCounterclockwise(original_action, 1));
-          break;
-        case kMirrorVerticalRotate180:
-          original_action =
-              MirrorVertical(RotateCounterclockwise(original_action, 2));
-          break;
-        case kMirrorVerticalRotate270:
-          original_action =
-              MirrorVertical(RotateCounterclockwise(original_action, 3));
-          break;
-      }
-      assert(action_index_map.find(original_action.row * TTT_COLS +
-                                   original_action.col) !=
-             action_index_map.end());
-      probs[action_index_map.at(original_action.row * TTT_COLS +
-                                original_action.col)] +=
-          policy_output.probabilities[i] / augmented_games.size();
+    for (std::size_t j = 0; j < aug_actions.size(); ++j) {
+      const TttAction original_action =
+          InverseTransformAction(aug_actions[j], sym);
+      const std::size_t key = original.PolicyIndex(original_action);
+      const auto it = action_index_map.find(key);
+      assert(it != action_index_map.end());
+      probs[it->second] += eval.probabilities[j] / n;
     }
   }
 
-  return PolicyOutput(values_sum / augmented_games.size(), std::move(probs));
+  return Evaluation{values_sum / n, std::move(probs)};
 }
 
 }  // namespace az::game::api::test

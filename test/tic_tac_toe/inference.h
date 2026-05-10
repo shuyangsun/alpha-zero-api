@@ -1,35 +1,35 @@
 #ifndef ALPHA_ZERO_API_TEST_TIC_TAC_TOE_INFERENCE_H_
 #define ALPHA_ZERO_API_TEST_TIC_TAC_TOE_INFERENCE_H_
 
-#include <cstdint>
 #include <span>
-#include <tuple>
-#include <unordered_map>
 #include <vector>
 
 #include "alpha-zero-api/augmenter.h"
 #include "alpha-zero-api/policy_output.h"
-#include "game.h"
+#include "tic_tac_toe/game.h"
 
 namespace az::game::api::test {
 
-class TttInferenceAugmenter
-    : public IInferenceAugmenter<TttBoard, TttAction, TttPlayer> {
+/**
+ * @brief Inference-time augmenter for `TttGame`.
+ *
+ * `Augment(game)` returns the 12 dihedral variants in the order
+ * defined by `internal::Augmentation`; `augmented[0]` is the
+ * identity. `Interpret` averages the resulting evaluations after
+ * inverting each per-augmentation symmetry to align actions with the
+ * original game.
+ */
+class TttInferenceAugmenter : public IInferenceAugmenter<TttGame> {
  public:
   TttInferenceAugmenter() = default;
   ~TttInferenceAugmenter() override = default;
 
-  [[nodiscard]] std::unordered_map<
-      uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-  Augment(const TttBoard& board, const TttPlayer& player,
-          std::span<const TttAction> actions) const noexcept final;
+  [[nodiscard]] std::vector<TttGame> Augment(
+      const TttGame& game) const noexcept final;
 
-  [[nodiscard]] PolicyOutput Interpret(
-      const std::unordered_map<
-          uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>&
-          augmented_games,
-      const std::unordered_map<uint8_t, PolicyOutput>& outputs)
-      const noexcept final;
+  [[nodiscard]] Evaluation Interpret(
+      const TttGame& original, std::span<const TttGame> augmented,
+      std::span<const Evaluation> evaluations) const noexcept final;
 };
 
 }  // namespace az::game::api::test

@@ -1,211 +1,116 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_GAME_H_
 
+#include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace az::game::api {
 
 /**
- * @brief IGame is the interface of a specific game implementation. It is the
- * most important and complex interface out of all components.
+ * @brief Concept describing a concrete game implementation.
  *
- * @tparam B Type of game board. This is usually an array or vector for most
- * board games.
- * @tparam A Type of a single action a player can take given a game state. For
- * example, in the game TicTacToe, this can be integer representing the position
- * on the board.
- * @tparam P Type of player. For two player games, this is usually bool; for
- * multi-player games, this is usually unsigned int.
- * @tparam E Type of error returned when parsing a human-readable action.
+ * Replaces the older virtual `IGame<B, A, P, E>` interface with a
+ * value-semantic, statically-dispatched contract. Concrete games are
+ * plain value types satisfying this concept; the engine is templated
+ * on the concrete game type. This unblocks stack allocation, removes
+ * virtual-dispatch overhead on the MCTS hot path, and lets the
+ * compiler see `sizeof(G)`.
+ *
+ * A conforming `G` must expose:
+ *
+ *   - Associated types `board_t`, `action_t`, `player_t`, `error_t`.
+ *   - A static `kHistoryLookback` declaring how many past states the
+ *     game's serializer needs as input. Markov games declare 0.
+ *   - A static `kPolicySize` declaring the size of the network's
+ *     fixed-size policy head — the cardinality of the game's full
+ *     action space, ignoring legality. The bijection between an
+ *     `action_t` value and a slot in `[0, kPolicySize)` is given by
+ *     `PolicyIndex(a)`.
+ *   - A static `kMaxRounds` declaring an optional self-play hard cap.
+ *     If set, `IsOver()` must return true once
+ *     `CurrentRound() >= *kMaxRounds`. The cap exists so pathological
+ *     loops in early-iteration networks still terminate.
+ *   - The usual observers (`GetBoard`, `CurrentRound`, `CurrentPlayer`,
+ *     `LastPlayer`, `LastAction`, `CanonicalBoard`, `ValidActions`,
+ *     `IsOver`, `GetScore`).
+ *   - Human-readable I/O (`BoardReadableString`, `ActionToString`,
+ *     `ActionFromString`).
+ *   - In-place mutation primitives `ApplyActionInPlace(const A&)` and
+ *     `UndoLastAction()`. These are the contract used by the MCTS hot
+ *     loop; both must be allocation-free.
+ *
+ * The non-mutating `ApplyAction(game, action)` is a free function
+ * defined below and implemented once for any conforming `G`. Concrete
+ * games never implement it themselves.
+ *
+ * `ValidActions()` must return a deterministic ordering that depends
+ * only on the game state — a training tuple `(s, π, z)` written under
+ * one ordering and replayed against a network trained under another
+ * is corrupt.
  */
-template <typename B, typename A, typename P, typename E>
-class IGame {
- public:
-  virtual ~IGame() = default;
+template <typename G>
+concept Game = requires(G g, const G cg, typename G::action_t a,
+                        typename G::player_t p) {
+  // associated types
+  typename G::board_t;
+  typename G::action_t;
+  typename G::player_t;
+  typename G::error_t;
 
-  /**
-   * @brief Type representing the game board state.
-   */
-  using board_t = B;
+  // static contract
+  { G::kHistoryLookback } -> std::convertible_to<std::size_t>;
+  { G::kPolicySize } -> std::convertible_to<std::size_t>;
+  { G::kMaxRounds } -> std::convertible_to<std::optional<uint32_t>>;
 
-  /**
-   * @brief Type of a single action a player can take.
-   */
-  using action_t = A;
+  // observers
+  { cg.GetBoard() } -> std::convertible_to<const typename G::board_t&>;
+  { cg.CurrentRound() } -> std::same_as<uint32_t>;
+  { cg.CurrentPlayer() } -> std::same_as<typename G::player_t>;
+  { cg.LastPlayer() } -> std::same_as<std::optional<typename G::player_t>>;
+  { cg.LastAction() } -> std::same_as<std::optional<typename G::action_t>>;
+  { cg.CanonicalBoard() } -> std::convertible_to<typename G::board_t>;
+  { cg.ValidActions() } -> std::same_as<std::vector<typename G::action_t>>;
+  { cg.IsOver() } -> std::same_as<bool>;
+  { cg.GetScore(p) } -> std::same_as<float>;
 
-  /**
-   * @brief Type representing a player.
-   */
-  using player_t = P;
+  // policy-vector layout: action -> slot in [0, kPolicySize)
+  { cg.PolicyIndex(a) } -> std::convertible_to<std::size_t>;
 
-  /**
-   * @brief Copy the current game state.
-   *
-   * @return std::unique_ptr<const IGame<B, A, P, E>> Pointer to a new copy of
-   * this game object.
-   */
-  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P, E>> Copy()
-      const noexcept = 0;
+  // mutation — primary transition API; zero allocations on the hot path
+  { g.ApplyActionInPlace(a) } -> std::same_as<void>;
+  { g.UndoLastAction() } -> std::same_as<void>;
 
-  /**
-   * @brief Get current board state.
-   *
-   * @return const B& Reference to the current game board state.
-   */
-  [[nodiscard]] virtual const B& GetBoard() const noexcept = 0;
-
-  /**
-   * @brief Get current round (turn) number.
-   *
-   * @return uint32_t Current round number.
-   */
-  [[nodiscard]] virtual uint32_t CurrentRound() const noexcept = 0;
-
-  /**
-   * @brief Get current player, the player that needs to take an action.
-   *
-   * @return P Player that will take the next action.
-   */
-  [[nodiscard]] virtual P CurrentPlayer() const noexcept = 0;
-
-  /**
-   * @brief Get the player that played the round before the current round.
-   *
-   * Usually, if the game has not started yet, this function should return
-   * std::nullopt. After the game starts, this function should return the player
-   * that took the last action.
-   *
-   * @return std::optional<P> Player that took the last action.
-   */
-  [[nodiscard]] virtual std::optional<P> LastPlayer() const noexcept = 0;
-
-  /**
-   * @brief Get the last action last player took, which lead to the current
-   * game state.
-   *
-   * Usually, if the game has not started yet, this function should return
-   * std::nullopt. After the game starts, this function should return the action
-   * taken by the last player.
-   *
-   * NOTE: If the game mechnism allows a player to pass a round, this method
-   * should still return something to represent the "pass" action. Similarly, if
-   * the game allows players to undo an action, this method should return
-   * something to represent the "undo" action. From the library's perspective,
-   * the game state can only proceed by taking an action, even if the action is
-   * "pass" or "undo".
-   *
-   * @return std::optional<A> The action taken by the last player.
-   */
-  [[nodiscard]] virtual std::optional<A> LastAction() const noexcept = 0;
-
-  /**
-   * @brief Get the canonical form of the current board state.
-   *
-   * The canonical form is the form of the board that is invariant to the
-   * current player, meaning that the board should be from the current player's
-   * perspective.
-   *
-   * @return B Canonical form of the current board state from the current
-   * player's perspective.
-   */
-  [[nodiscard]] virtual B CanonicalBoard() const noexcept = 0;
-
-  /**
-   * @brief Vector of all valid actions the current player can take.
-   *
-   * This function should return all possible actions the current player can
-   * take. The returned vector can be empty if the current player has no valid
-   * action. The returned vector can vary in length depending on the current
-   * game state.
-   *
-   * @return std::vector<A> Actions the current player can take.
-   */
-  [[nodiscard]] virtual std::vector<A> ValidActions() const noexcept = 0;
-
-  /**
-   * @brief Game state after the current player takes a given action.
-   *
-   * This function should return a new game object after the current player
-   * takes the given action.
-   *
-   * NOTE: all values returned from the `Actions()` method can be used as input
-   * to this method. It is the responsibility of the game implementation to
-   * ensure that all actions are valid. The library is free to pass any value
-   * from the result of the `Actions()` method to this method, and the library
-   * guarantees to only pass values from valid actions.
-   *
-   * @param action Action to take from the current game state by the current
-   * player.
-   * @return std::unique_ptr<const IGame<B, A, P, E>> Pointer to a new game
-   * object after the action is taken by the current player.
-   */
-  [[nodiscard]] virtual std::unique_ptr<const IGame<B, A, P, E>>
-  GameAfterAction(const A& action) const noexcept = 0;
-
-  /**
-   * @brief Check if the game ended.
-   *
-   * Game is over usually means a player winning or losing, or the game is a
-   * draw. It is up to the game implementation to define what is considered as
-   * over.
-   *
-   * @return true Game is over.
-   * @return false Game is not over.
-   */
-  [[nodiscard]] virtual bool IsOver() const noexcept = 0;
-
-  /**
-   * @brief Get the score of given player when the game is over.
-   *
-   * The library guarantees that this method is only called when the game is
-   * already over. For example, if the game is binary-player and binary-outcome,
-   * the score is usually 1 for win, 0 for draw, and -1 for lose.
-   *
-   * @param player Player to get the score.
-   * @return float Score of the given player after the game ends.
-   */
-  [[nodiscard]] virtual float GetScore(const P& player) const noexcept = 0;
-
-  /**
-   * @brief Print the current game board in a human-readable format.
-   *
-   * This is used to play with the game in the console. The output should be
-   * human-readable and easy to understand.
-   *
-   * @return std::string Readable string of the current game board.
-   */
-  [[nodiscard]] virtual std::string BoardReadableString() const noexcept = 0;
-
-  /**
-   * @brief Action from a human-readable string.
-   *
-   * This is used to play the game in the console, converts user input to an
-   * action.
-   *
-   * @param action_str User input of the next action they want to take.
-   * @return std::expected<A, E>
-   */
-  [[nodiscard]] virtual std::expected<A, E> ActionFromString(
-      std::string_view action_str) const noexcept = 0;
-
-  /**
-   * @brief Converts an action to a human-readable string.
-   *
-   * This is used to play the game in the console, prints an action from a
-   * player in a readable format.
-   *
-   * @param action Action to convert to a readable string.
-   * @return std::string Readable string of the action.
-   */
-  [[nodiscard]] virtual std::string ActionToString(
-      const A& action) const noexcept = 0;
+  // human-readable I/O
+  { cg.BoardReadableString() } -> std::same_as<std::string>;
+  { cg.ActionToString(a) } -> std::same_as<std::string>;
+  {
+    cg.ActionFromString(std::string_view{})
+  } -> std::same_as<std::expected<typename G::action_t, typename G::error_t>>;
 };
+
+/**
+ * @brief Non-mutating apply: copy `game`, apply `action` in place, return.
+ *
+ * Defined once for any conforming `Game G`. Concrete games never
+ * implement this themselves — the MCTS hot loop is expected to call
+ * `ApplyActionInPlace` / `UndoLastAction` on a single working copy and
+ * use this free function only for cold-path snapshots.
+ */
+template <Game G>
+[[nodiscard]] G
+ApplyAction(const G& game, const typename G::action_t& action) noexcept(
+    std::is_nothrow_copy_constructible_v<G>) {
+  G next = game;
+  next.ApplyActionInPlace(action);
+  return next;
+}
 
 }  // namespace az::game::api
 

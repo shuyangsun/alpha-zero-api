@@ -1,72 +1,55 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_SERIALIZER_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_SERIALIZER_H_
 
-#include <span>
-#include <string>
 #include <vector>
 
 #include "alpha-zero-api/configuration.h"
 #include "alpha-zero-api/game.h"
 #include "alpha-zero-api/policy_output.h"
+#include "alpha-zero-api/ring_buffer.h"
 
 namespace az::game::api {
 
 /**
- * @brief ISerializer is an interface for serializing a particular game state to
- * the neural network input.
+ * @brief Serialize a game state to the neural network's input layout.
  *
- * @tparam B Type of board. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
- * @tparam A Type of a single action. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
- * @tparam P Type of player. See documentation for IGame in
- * src/include/alpha-zero-api/game.h.
+ * `history` is the engine-owned window of past game states; the
+ * engine guarantees `history.Size() == G::kHistoryLookback` once
+ * enough states have been seen and a shorter prefix during the first
+ * few plies of a game. Markov games declaring `kHistoryLookback == 0`
+ * always see an empty view.
+ *
+ * Index 0 of the view is the most recent state preceding `game`;
+ * index `Size() - 1` is the oldest state still in the window. `game`
+ * itself is **not** in the view.
  */
-template <typename B, typename A, typename P>
+template <Game G>
 class IGameSerializer {
  public:
   virtual ~IGameSerializer() = default;
 
-  /**
-   * @brief Serializes the given game state to a vector of floats as the neural
-   * network input.
-   *
-   * The input format should at least include the current board state, maybe
-   * current player or available actions as well. The input format * is a very
-   * subjective design decision implementations need to make.
-   *
-   * The returned vector should be of fixed size, because it will be used for
-   * the neural network input.
-   *
-   * @param board Current board state.
-   * @param player Current player.
-   * @return std::vector<float> Serialized neural network input as a vector of
-   * floats.
-   */
   [[nodiscard]] virtual std::vector<float> SerializeCurrentState(
-      const B& board, const P& player,
-      std::span<const A> actions) const noexcept = 0;
+      const G& game, RingBufferView<G> history) const noexcept = 0;
 };
 
-template <typename B, typename A, typename P>
+/**
+ * @brief Serialize a `TrainingTarget` to the neural network's output
+ * layout.
+ *
+ * `target.pi[i]` corresponds to `game.ValidActions()[i]`; the
+ * implementation is responsible for scattering those values into the
+ * fixed-size policy output via `game.PolicyIndex(action)`. The
+ * resulting vector typically has size `G::kPolicySize + value_dim` —
+ * the canonical default in `defaults/serializer.h` produces
+ * `1 + kPolicySize` floats with `target.z` in slot 0.
+ */
+template <Game G>
 class IPolicyOutputSerializer {
  public:
   virtual ~IPolicyOutputSerializer() = default;
 
-  /**
-   * @brief Serialize a `PolicyOutput` object to a fixed-size vector of floats
-   * as the neural network output training data.
-   *
-   * @param board Current board state.
-   * @param player Current player.
-   * @param actions Available actions.
-   * @param output PolicyOutput object to serialize.
-   * @return std::vector<float> Serialized PolicyOutput object as a vector of
-   * single-precision floats.
-   */
   [[nodiscard]] virtual std::vector<float> SerializePolicyOutput(
-      const B& board, const P& player, std::span<const A> actions,
-      const PolicyOutput& output) const noexcept = 0;
+      const G& game, const TrainingTarget& target) const noexcept = 0;
 };
 
 }  // namespace az::game::api

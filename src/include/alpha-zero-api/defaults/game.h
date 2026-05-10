@@ -2,9 +2,8 @@
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_DEFAULTS_GAME_H_
 
 #include <array>
+#include <cstdint>
 #include <vector>
-
-#include "alpha-zero-api/game.h"
 
 namespace az::game::api {
 
@@ -27,21 +26,6 @@ struct Action2D {
 using BinaryPlayer = bool;
 constexpr BinaryPlayer Player1 = false;
 constexpr BinaryPlayer Player2 = true;
-
-// Standard game interfaces
-template <uint16_t SZ, typename E>
-using ITwoPlayer1DBoardGame =
-    IGame<Standard1DBoard<SZ>, Action1D, BinaryPlayer, E>;
-template <typename E>
-using ITwoPlayer1DLargeBoardGame =
-    IGame<Standard1DLargeBoard, Action1D, BinaryPlayer, E>;
-
-template <uint16_t ROWS, uint16_t COLS, typename E>
-using ITwoPlayer2DBoardGame =
-    IGame<Standard2DBoard<ROWS, COLS>, Action2D, BinaryPlayer, E>;
-template <typename E>
-using ITwoPlayer2DLargeBoardGame =
-    IGame<Standard2DLargeBoard, Action2D, BinaryPlayer, E>;
 
 }  // namespace az::game::api
 

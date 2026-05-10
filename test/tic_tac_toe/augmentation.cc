@@ -1,15 +1,57 @@
 #include "augmentation.h"
 
+#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
-#include <span>
-#include <tuple>
-#include <unordered_map>
+#include <optional>
+#include <utility>
 #include <vector>
 
-#include "game.h"
+#include "tic_tac_toe/game.h"
 
 namespace az::game::api::test::internal {
+
+namespace {
+
+[[nodiscard]] TttBoard MirrorHorizontalBoard(const TttBoard& board) noexcept {
+  TttBoard result = board;
+  for (std::size_t row = 0; row < TTT_ROWS; ++row) {
+    for (std::size_t col = 0; col < TTT_COLS / 2; ++col) {
+      std::swap(result[row][col], result[row][TTT_COLS - 1 - col]);
+    }
+  }
+  return result;
+}
+
+[[nodiscard]] TttBoard MirrorVerticalBoard(const TttBoard& board) noexcept {
+  TttBoard result = board;
+  for (std::size_t row = 0; row < TTT_ROWS / 2; ++row) {
+    for (std::size_t col = 0; col < TTT_COLS; ++col) {
+      std::swap(result[row][col], result[TTT_ROWS - 1 - row][col]);
+    }
+  }
+  return result;
+}
+
+[[nodiscard]] TttBoard RotateClockwiseBoard(const TttBoard& board) noexcept {
+  TttBoard result = board;
+  for (std::size_t row = 0; row < TTT_ROWS; ++row) {
+    for (std::size_t col = 0; col < TTT_COLS; ++col) {
+      result[col][TTT_ROWS - 1 - row] = board[row][col];
+    }
+  }
+  return result;
+}
+
+[[nodiscard]] std::optional<TttAction> TransformLastAction(
+    const std::optional<TttAction>& last,
+    TttAction (*transform)(const TttAction&)) noexcept {
+  if (!last.has_value()) {
+    return std::nullopt;
+  }
+  return transform(*last);
+}
+
+}  // namespace
 
 TttAction MirrorHorizontal(const TttAction& action) noexcept {
   return TttAction{action.row,
@@ -27,7 +69,7 @@ TttAction RotateClockwise(const TttAction& action) noexcept {
 }
 
 TttAction RotateCounterclockwise(const TttAction& action,
-                                 size_t times) noexcept {
+                                 std::size_t times) noexcept {
   times = times % 4;
   switch (times) {
     case 1:
@@ -43,149 +85,96 @@ TttAction RotateCounterclockwise(const TttAction& action,
   }
 }
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorHorizontal(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) noexcept {
-  TttBoard mirrored_board = board;
-  for (size_t row = 0; row < TTT_ROWS; ++row) {
-    for (size_t col = 0; col < TTT_COLS / 2; ++col) {
-      std::swap(mirrored_board[row][col],
-                mirrored_board[row][TTT_COLS - 1 - col]);
-    }
-  }
-  std::vector<TttAction> mirrored_actions;
-  mirrored_actions.reserve(actions.size());
-  for (const auto& action : actions) {
-    mirrored_actions.emplace_back(MirrorHorizontal(action));
-  }
-  return std::make_tuple(mirrored_board, player, mirrored_actions);
+TttGame MirrorHorizontal(const TttGame& game) noexcept {
+  return TttGame{
+      MirrorHorizontalBoard(game.GetBoard()), game.CurrentPlayer(),
+      game.CurrentRound(),
+      TransformLastAction(
+          game.LastAction(),
+          static_cast<TttAction (*)(const TttAction&)>(&MirrorHorizontal))};
 }
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> MirrorVertical(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) noexcept {
-  TttBoard mirrored_board = board;
-  for (size_t row = 0; row < TTT_ROWS / 2; ++row) {
-    for (size_t col = 0; col < TTT_COLS; ++col) {
-      std::swap(mirrored_board[row][col],
-                mirrored_board[TTT_ROWS - 1 - row][col]);
-    }
-  }
-  std::vector<TttAction> mirrored_actions;
-  mirrored_actions.reserve(actions.size());
-  for (const auto& action : actions) {
-    mirrored_actions.emplace_back(MirrorVertical(action));
-  }
-  return std::make_tuple(mirrored_board, player, mirrored_actions);
+TttGame MirrorVertical(const TttGame& game) noexcept {
+  return TttGame{
+      MirrorVerticalBoard(game.GetBoard()), game.CurrentPlayer(),
+      game.CurrentRound(),
+      TransformLastAction(
+          game.LastAction(),
+          static_cast<TttAction (*)(const TttAction&)>(&MirrorVertical))};
 }
 
-std::tuple<TttBoard, TttPlayer, std::vector<TttAction>> RotateClockwise(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions) noexcept {
-  TttBoard rotated_board = board;
-  TttBoard temp = rotated_board;
-  for (size_t row = 0; row < TTT_ROWS; ++row) {
-    for (size_t col = 0; col < TTT_COLS; ++col) {
-      rotated_board[col][TTT_ROWS - 1 - row] = temp[row][col];
-    }
-  }
-  std::vector<TttAction> rotated_actions;
-  rotated_actions.reserve(actions.size());
-  for (const auto& action : actions) {
-    rotated_actions.emplace_back(RotateClockwise(action));
-  }
-  return std::make_tuple(rotated_board, player, rotated_actions);
+TttGame RotateClockwise(const TttGame& game) noexcept {
+  return TttGame{
+      RotateClockwiseBoard(game.GetBoard()), game.CurrentPlayer(),
+      game.CurrentRound(),
+      TransformLastAction(
+          game.LastAction(),
+          static_cast<TttAction (*)(const TttAction&)>(&RotateClockwise))};
 }
 
-std::unordered_map<uint8_t,
-                   std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-AugmentAll(const TttBoard& board, const TttPlayer& player,
-           std::span<const TttAction> actions) noexcept {
-  using enum Augmentation;
-  std::unordered_map<uint8_t,
-                     std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-      result;
-  result.reserve(12);
-  result.emplace(
-      static_cast<uint8_t>(kOriginal),
-      std::make_tuple(board, player,
-                      std::vector<TttAction>(actions.begin(), actions.end())));
+std::vector<TttGame> AugmentAll(const TttGame& game) noexcept {
+  std::vector<TttGame> result;
+  result.reserve(kNumAugmentations);
 
-  // Rotations.
-  const auto [rotated_board_1, rotated_player_1, rotated_actions_1] =
-      RotateClockwise(board, player, actions);
-  result.emplace(
-      static_cast<uint8_t>(kRotate90),
-      std::make_tuple(rotated_board_1, rotated_player_1, rotated_actions_1));
+  result.emplace_back(game);
+  TttGame r1 = RotateClockwise(game);
+  TttGame r2 = RotateClockwise(r1);
+  TttGame r3 = RotateClockwise(r2);
+  result.emplace_back(r1);
+  result.emplace_back(r2);
+  result.emplace_back(r3);
 
-  const auto [rotated_board_2, rotated_player_2, rotated_actions_2] =
-      RotateClockwise(rotated_board_1, rotated_player_1, rotated_actions_1);
-  result.emplace(
-      static_cast<uint8_t>(kRotate180),
-      std::make_tuple(rotated_board_2, rotated_player_2, rotated_actions_2));
+  TttGame mh = MirrorHorizontal(game);
+  TttGame mh1 = RotateClockwise(mh);
+  TttGame mh2 = RotateClockwise(mh1);
+  TttGame mh3 = RotateClockwise(mh2);
+  result.emplace_back(std::move(mh));
+  result.emplace_back(std::move(mh1));
+  result.emplace_back(std::move(mh2));
+  result.emplace_back(std::move(mh3));
 
-  const auto [rotated_board_3, rotated_player_3, rotated_actions_3] =
-      RotateClockwise(rotated_board_2, rotated_player_2, rotated_actions_2);
-  result.emplace(
-      static_cast<uint8_t>(kRotate270),
-      std::make_tuple(rotated_board_3, rotated_player_3, rotated_actions_3));
+  TttGame mv = MirrorVertical(game);
+  TttGame mv1 = RotateClockwise(mv);
+  TttGame mv2 = RotateClockwise(mv1);
+  TttGame mv3 = RotateClockwise(mv2);
+  result.emplace_back(std::move(mv));
+  result.emplace_back(std::move(mv1));
+  result.emplace_back(std::move(mv2));
+  result.emplace_back(std::move(mv3));
 
-  // Mirror horizontally.
-  const auto [mirrored_board_h, mirrored_player_h, mirrored_actions_h] =
-      MirrorHorizontal(board, player, actions);
-  result.emplace(
-      static_cast<uint8_t>(kMirrorHorizontal),
-      std::make_tuple(mirrored_board_h, mirrored_player_h, mirrored_actions_h));
-
-  // Mirror horizontally + rotations.
-  const auto [mh_rotated_board_1, mh_rotated_player_1, mh_rotated_actions_1] =
-      RotateClockwise(mirrored_board_h, mirrored_player_h, mirrored_actions_h);
-  result.emplace(static_cast<uint8_t>(kMirrorHorizontalRotate90),
-                 std::make_tuple(mh_rotated_board_1, mh_rotated_player_1,
-                                 mh_rotated_actions_1));
-
-  const auto [mh_rotated_board_2, mh_rotated_player_2, mh_rotated_actions_2] =
-      RotateClockwise(mh_rotated_board_1, mh_rotated_player_1,
-                      mh_rotated_actions_1);
-  result.emplace(static_cast<uint8_t>(kMirrorHorizontalRotate180),
-                 std::make_tuple(mh_rotated_board_2, mh_rotated_player_2,
-                                 mh_rotated_actions_2));
-
-  const auto [mh_rotated_board_3, mh_rotated_player_3, mh_rotated_actions_3] =
-      RotateClockwise(mh_rotated_board_2, mh_rotated_player_2,
-                      mh_rotated_actions_2);
-  result.emplace(static_cast<uint8_t>(kMirrorHorizontalRotate270),
-                 std::make_tuple(mh_rotated_board_3, mh_rotated_player_3,
-                                 mh_rotated_actions_3));
-
-  // Mirror vertically.
-  const auto [mirrored_board_v, mirrored_player_v, mirrored_actions_v] =
-      MirrorVertical(board, player, actions);
-  result.emplace(
-      static_cast<uint8_t>(kMirrorVertical),
-      std::make_tuple(mirrored_board_v, mirrored_player_v, mirrored_actions_v));
-
-  // Mirror vertically + rotations.
-  const auto [mv_rotated_board_1, mv_rotated_player_1, mv_rotated_actions_1] =
-      RotateClockwise(mirrored_board_v, mirrored_player_v, mirrored_actions_v);
-  result.emplace(static_cast<uint8_t>(kMirrorVerticalRotate90),
-                 std::make_tuple(mv_rotated_board_1, mv_rotated_player_1,
-                                 mv_rotated_actions_1));
-
-  const auto [mv_rotated_board_2, mv_rotated_player_2, mv_rotated_actions_2] =
-      RotateClockwise(mv_rotated_board_1, mv_rotated_player_1,
-                      mv_rotated_actions_1);
-  result.emplace(static_cast<uint8_t>(kMirrorVerticalRotate180),
-                 std::make_tuple(mv_rotated_board_2, mv_rotated_player_2,
-                                 mv_rotated_actions_2));
-
-  const auto [mv_rotated_board_3, mv_rotated_player_3, mv_rotated_actions_3] =
-      RotateClockwise(mv_rotated_board_2, mv_rotated_player_2,
-                      mv_rotated_actions_2);
-  result.emplace(static_cast<uint8_t>(kMirrorVerticalRotate270),
-                 std::make_tuple(mv_rotated_board_3, mv_rotated_player_3,
-                                 mv_rotated_actions_3));
   return result;
+}
+
+TttAction InverseTransformAction(const TttAction& augmented_action,
+                                 Augmentation augmentation) noexcept {
+  using enum Augmentation;
+  switch (augmentation) {
+    case kOriginal:
+      return augmented_action;
+    case kRotate90:
+      return RotateCounterclockwise(augmented_action, 1);
+    case kRotate180:
+      return RotateCounterclockwise(augmented_action, 2);
+    case kRotate270:
+      return RotateCounterclockwise(augmented_action, 3);
+    case kMirrorHorizontal:
+      return MirrorHorizontal(augmented_action);
+    case kMirrorHorizontalRotate90:
+      return MirrorHorizontal(RotateCounterclockwise(augmented_action, 1));
+    case kMirrorHorizontalRotate180:
+      return MirrorHorizontal(RotateCounterclockwise(augmented_action, 2));
+    case kMirrorHorizontalRotate270:
+      return MirrorHorizontal(RotateCounterclockwise(augmented_action, 3));
+    case kMirrorVertical:
+      return MirrorVertical(augmented_action);
+    case kMirrorVerticalRotate90:
+      return MirrorVertical(RotateCounterclockwise(augmented_action, 1));
+    case kMirrorVerticalRotate180:
+      return MirrorVertical(RotateCounterclockwise(augmented_action, 2));
+    case kMirrorVerticalRotate270:
+      return MirrorVertical(RotateCounterclockwise(augmented_action, 3));
+  }
+  return augmented_action;
 }
 
 }  // namespace az::game::api::test::internal

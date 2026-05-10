@@ -1,16 +1,25 @@
 #ifndef ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_
 #define ALPHA_ZERO_API_TEST_TIC_TAC_TOE_AUGMENTATION_H_
 
+#include <cstddef>
 #include <cstdint>
-#include <span>
-#include <tuple>
-#include <unordered_map>
 #include <vector>
 
-#include "game.h"
+#include "tic_tac_toe/game.h"
 
 namespace az::game::api::test::internal {
 
+/**
+ * @brief Symmetry tags used by augmenters. Order matches the order of
+ * the games returned by `AugmentAll`.
+ *
+ * Note: this enumerates all 12 transformations historically applied
+ * by the Tic-Tac-Toe example. The dihedral group D4 has order 8, so
+ * the last four entries (kMirrorVertical*) are duplicates of earlier
+ * entries (`MirrorVertical = MirrorHorizontal * Rot180`, etc.). The
+ * duplicates are kept here to preserve historical behavior;
+ * `Interpret` weights all 12 outputs equally.
+ */
 enum class Augmentation : uint8_t {
   kOriginal = 0,
   kRotate90,
@@ -23,34 +32,33 @@ enum class Augmentation : uint8_t {
   kMirrorVertical,
   kMirrorVerticalRotate90,
   kMirrorVerticalRotate180,
-  kMirrorVerticalRotate270
+  kMirrorVerticalRotate270,
 };
+
+constexpr std::size_t kNumAugmentations = 12;
 
 [[nodiscard]] TttAction MirrorHorizontal(const TttAction& action) noexcept;
 [[nodiscard]] TttAction MirrorVertical(const TttAction& action) noexcept;
 [[nodiscard]] TttAction RotateClockwise(const TttAction& action) noexcept;
 [[nodiscard]] TttAction RotateCounterclockwise(const TttAction& action,
-                                               size_t times) noexcept;
+                                               std::size_t times) noexcept;
 
-[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
-MirrorHorizontal(const TttBoard& board, const TttPlayer& player,
-                 std::span<const TttAction> actions) noexcept;
+[[nodiscard]] TttGame MirrorHorizontal(const TttGame& game) noexcept;
+[[nodiscard]] TttGame MirrorVertical(const TttGame& game) noexcept;
+[[nodiscard]] TttGame RotateClockwise(const TttGame& game) noexcept;
 
-[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
-MirrorVertical(const TttBoard& board, const TttPlayer& player,
-               std::span<const TttAction> actions) noexcept;
+/**
+ * @brief Produce all 12 augmented `TttGame` snapshots in the order
+ * given by `Augmentation`. `result[i]` corresponds to `Augmentation(i)`.
+ */
+[[nodiscard]] std::vector<TttGame> AugmentAll(const TttGame& game) noexcept;
 
-[[nodiscard]] std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>
-RotateClockwise(const TttBoard& board, const TttPlayer& player,
-                std::span<const TttAction> actions) noexcept;
-
-// Applies all 12 augmentations (original, 3 rotations, mirror-H,
-// mirror-H + 3 rotations, mirror-V, mirror-V + 3 rotations).
-// Keys are Augmentation enum values cast to uint8_t.
-[[nodiscard]] std::unordered_map<
-    uint8_t, std::tuple<TttBoard, TttPlayer, std::vector<TttAction>>>
-AugmentAll(const TttBoard& board, const TttPlayer& player,
-           std::span<const TttAction> actions) noexcept;
+/**
+ * @brief Map an action expressed in an augmented coordinate frame
+ * back to the original (unaugmented) coordinate frame.
+ */
+[[nodiscard]] TttAction InverseTransformAction(
+    const TttAction& augmented_action, Augmentation augmentation) noexcept;
 
 }  // namespace az::game::api::test::internal
 

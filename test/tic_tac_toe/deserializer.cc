@@ -2,10 +2,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <expected>
 #include <span>
-#include <string>
+#include <utility>
 #include <vector>
+
+#include "alpha-zero-api/policy_output.h"
+#include "tic_tac_toe/game.h"
 
 namespace az::game::api::test {
 
@@ -37,21 +41,19 @@ std::vector<float> Softmax(std::span<const float> input) noexcept {
 
 }  // namespace
 
-TttResult<PolicyOutput> TttDeserializer::Deserialize(
-    const TttBoard& board, const TttPlayer& player,
-    std::span<const TttAction> actions,
-    std::span<const float> output) const noexcept {
-  if (output.size() != TTT_ROWS * TTT_COLS + 1) {
+TttResult<Evaluation> TttDeserializer::Deserialize(
+    const TttGame& game, std::span<const float> output) const noexcept {
+  if (output.size() != TttGame::kPolicySize + 1) {
     return std::unexpected(TttError::kInvalidPolicyOutputSize);
   }
-  std::vector<float> probs;
-  probs.reserve(actions.size());
-
-  for (const TttAction& action : actions) {
-    const size_t index = action.row * TTT_COLS + action.col;
-    probs.emplace_back(output[index + 1]);
+  const auto actions = game.ValidActions();
+  std::vector<float> raw;
+  raw.reserve(actions.size());
+  for (const auto& action : actions) {
+    const std::size_t idx = game.PolicyIndex(action);
+    raw.push_back(output[1 + idx]);
   }
-  return PolicyOutput{output.front(), std::move(Softmax(probs))};
+  return Evaluation{output.front(), Softmax(raw)};
 }
 
 }  // namespace az::game::api::test

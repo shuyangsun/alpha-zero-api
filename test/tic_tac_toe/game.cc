@@ -2,14 +2,16 @@
 
 #include <array>
 #include <cctype>
+#include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "alpha-zero-api/game.h"
 
 namespace az::game::api::test {
 
@@ -98,12 +100,16 @@ enum class GameStatus : uint8_t {
 TttGame::TttGame(TttPlayer starting_player) noexcept
     : current_player_(starting_player) {}
 
-TttResult<TttGamePtr> TttGame::Create(TttPlayer starting_player) noexcept {
-  return TttGamePtr(new TttGame(starting_player));
-}
-
-std::unique_ptr<const TttGameInterface> TttGame::Copy() const noexcept {
-  return std::make_unique<TttGame>(*this);
+TttGame::TttGame(TttBoard board, TttPlayer current_player,
+                 uint32_t current_round,
+                 std::optional<TttAction> last_action) noexcept
+    : board_(board),
+      current_round_(current_round),
+      current_player_(current_player) {
+  if (last_action.has_value()) {
+    action_history_[0] = *last_action;
+    history_size_ = 1;
+  }
 }
 
 const TttBoard& TttGame::GetBoard() const noexcept { return board_; }
@@ -113,12 +119,17 @@ uint32_t TttGame::CurrentRound() const noexcept { return current_round_; }
 TttPlayer TttGame::CurrentPlayer() const noexcept { return current_player_; }
 
 std::optional<TttPlayer> TttGame::LastPlayer() const noexcept {
-  return last_action_.has_value() ? std::optional<TttPlayer>{!current_player_}
-                                  : std::nullopt;
+  if (history_size_ == 0) {
+    return std::nullopt;
+  }
+  return !current_player_;
 }
 
 std::optional<TttAction> TttGame::LastAction() const noexcept {
-  return last_action_;
+  if (history_size_ == 0) {
+    return std::nullopt;
+  }
+  return action_history_[history_size_ - 1];
 }
 
 TttBoard TttGame::CanonicalBoard() const noexcept {
@@ -139,7 +150,7 @@ TttBoard TttGame::CanonicalBoard() const noexcept {
 
 std::vector<TttAction> TttGame::ValidActions() const noexcept {
   std::vector<TttAction> actions;
-  actions.reserve(TTT_ROWS * TTT_COLS);
+  actions.reserve(TTT_CELLS);
   for (uint16_t r = 0; r < TTT_ROWS; ++r) {
     for (uint16_t c = 0; c < TTT_COLS; ++c) {
       if (board_[r][c] == 0) {
@@ -150,16 +161,10 @@ std::vector<TttAction> TttGame::ValidActions() const noexcept {
   return actions;
 }
 
-std::unique_ptr<const TttGameInterface> TttGame::GameAfterAction(
-    const TttAction& action) const noexcept {
-  TttGame new_game = *this;
-  new_game.board_[action.row][action.col] = current_player_ ? 1 : -1;
-  new_game.current_player_ = !current_player_;
-  new_game.current_round_++;
-  return std::make_unique<TttGame>(std::move(new_game));
-}
-
 bool TttGame::IsOver() const noexcept {
+  if (kMaxRounds.has_value() && current_round_ >= *kMaxRounds) {
+    return true;
+  }
   return CheckGameStatus(board_) != GameStatus::ONGOING;
 }
 
@@ -174,6 +179,28 @@ float TttGame::GetScore(const TttPlayer& player) const noexcept {
     return 1.0f;
   }
   return -1.0f;
+}
+
+std::size_t TttGame::PolicyIndex(const TttAction& action) const noexcept {
+  return static_cast<std::size_t>(action.row) * TTT_COLS + action.col;
+}
+
+void TttGame::ApplyActionInPlace(const TttAction& action) noexcept {
+  board_[action.row][action.col] = current_player_ ? 1 : -1;
+  current_player_ = !current_player_;
+  ++current_round_;
+  action_history_[history_size_++] = action;
+}
+
+void TttGame::UndoLastAction() noexcept {
+  if (history_size_ == 0) {
+    return;
+  }
+  --history_size_;
+  const TttAction action = action_history_[history_size_];
+  board_[action.row][action.col] = 0;
+  current_player_ = !current_player_;
+  --current_round_;
 }
 
 std::string TttGame::BoardReadableString() const noexcept {
@@ -246,5 +273,8 @@ std::string TttGame::ActionToString(const TttAction& action) const noexcept {
   ss << col_char << std::to_string(TTT_ROWS - action.row);
   return ss.str();
 }
+
+static_assert(::az::game::api::Game<TttGame>,
+              "TttGame must satisfy the Game concept");
 
 }  // namespace az::game::api::test

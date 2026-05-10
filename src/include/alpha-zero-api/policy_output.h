@@ -1,82 +1,55 @@
 #ifndef ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_POLICY_OUTPUT_H_
 #define ALPHA_ZERO_API_SRC_INCLUDE_ALPHA_ZERO_API_POLICY_OUTPUT_H_
 
-#include <iterator>
-#include <utility>
 #include <vector>
 
 namespace az::game::api {
 
 /**
- * @brief PolicyOutput class is the output of the policy neural network.
+ * @brief What the network produced for a single state.
  *
- * It contains the value of the current state and the vector of probabilities of
- * selecting each action. The value and probabilities are single-precision
- * floating point values.
+ * `Evaluation` is the consumer-side decoded form of one forward pass:
+ * a scalar value estimate plus a probability distribution over the
+ * **currently legal** actions. The distribution is post-softmax,
+ * masked to legal actions, and renormalized so it sums to 1.
  *
- * Do NOT modify this class.
+ *   - `value` is in `[-1, +1]`, from the **current player's**
+ *     perspective.
+ *   - `probabilities[i]` is the prior for the action at
+ *     `game.ValidActions()[i]`. Length always matches the number of
+ *     legal actions on the current state.
+ *
+ * Deserializers produce `Evaluation`. The split between this type and
+ * `TrainingTarget` makes the
+ * "is-this-the-network-prediction-or-the-training-label?" distinction
+ * type-level explicit.
  */
-struct PolicyOutput {
-  PolicyOutput() = delete;
-
-  /**
-   * @brief Construct a new PolicyOutput object from a value and an r-value
-   * vector of probabilities.
-   *
-   * @param value Value of the current state.
-   * @param probabilities Vector of probabilities of selecting each action.
-   */
-  PolicyOutput(float value, std::vector<float>&& probabilities)
-      : value{value}, probabilities{std::move(probabilities)} {}
-
-  /**
-   * @brief Construct a new PolicyOutput object from a value and an l-value
-   * vector of probabilities.
-   *
-   * @param value Value of the current state.
-   * @param probabilities Vector of probabilities of selecting each action.
-   */
-  PolicyOutput(float value, const std::vector<float>& probabilities)
-      : value{value}, probabilities{probabilities} {}
-
-  /**
-   * @brief Construct a new PolicyOutput object from an r-value vector that
-   * represents the output of the neural network. The first element of the
-   * vector is the value of the current state, and the rest of the elements are
-   * probabilities of selecting each action.
-   *
-   * @param nn_output Vector of single-precision floats that represents the
-   * output of the neural network.
-   */
-  PolicyOutput(std::vector<float>&& nn_output)
-      : value{nn_output.front()},
-        probabilities{std::make_move_iterator(nn_output.begin() + 1),
-                      std::make_move_iterator(nn_output.end())} {}
-
-  /**
-   * @brief Construct a new PolicyOutput object from an r-value vector that
-   * represents the output of the neural network. The first element of the
-   * vector is the value of the current state, and the rest of the elements are
-   * probabilities of selecting each action.
-   *
-   * @param nn_output Vector of single-precision floats that represents the
-   * output of the neural network.
-   */
-  PolicyOutput(const std::vector<float>& nn_output)
-      : value{nn_output.front()},
-        probabilities{nn_output.begin() + 1, nn_output.end()} {}
-
-  ~PolicyOutput() = default;
-
-  /**
-   * @brief Value of the current state.
-   */
+struct Evaluation {
   float value;
-
-  /**
-   * @brief Probabilities of selecting each action.
-   */
   std::vector<float> probabilities;
+};
+
+/**
+ * @brief What the network is asked to learn for a single state.
+ *
+ * `TrainingTarget` is the supervised label written to the replay
+ * buffer at the end of self-play.
+ *
+ *   - `z` is the actual game outcome reached in self-play, from the
+ *     **current player's** perspective at the time this state was
+ *     recorded — produced by `GetScore(state.CurrentPlayer())` once
+ *     the playout finishes.
+ *   - `pi[i]` is the MCTS visit-count distribution for the action at
+ *     `game.ValidActions()[i]`. The vector sums to 1 and has length
+ *     equal to `ValidActions().size()`.
+ *
+ * Policy-output serializers consume `TrainingTarget`. The fixed-size
+ * network output is laid out via `game.PolicyIndex(action)`; see
+ * `defaults/serializer.h` for the canonical scatter implementation.
+ */
+struct TrainingTarget {
+  float z;
+  std::vector<float> pi;
 };
 
 }  // namespace az::game::api
