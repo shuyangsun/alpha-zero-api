@@ -32,6 +32,7 @@ install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/alpha-zero-api/configuration.h
         include/alpha-zero-api/game.h
         include/alpha-zero-api/policy_output.h
+        include/alpha-zero-api/ring_buffer.h
         include/alpha-zero-api/serializer.h
         include/alpha-zero-api/deserializer.h
         include/alpha-zero-api/augmenter.h
