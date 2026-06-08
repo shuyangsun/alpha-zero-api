@@ -5,11 +5,11 @@ the requirements implied by the AlphaGo Zero paper (Silver et al., 2017) and
 the AlphaZero paper (Silver et al., 2018), with a secondary look at how the
 current Tic-Tac-Toe example exercises the API.
 
-The headline: the API covers the conceptual surface of a "game contract"
+The initial headline: the API covered the conceptual surface of a "game contract"
 (state, action, transition, terminal check, canonical form, augmentation,
-serialization, deserialization) and is well documented. But several pieces
-that the AlphaZero paper explicitly relies on are absent or only implicit,
-and a few design choices will hurt either correctness on non-toy games
+serialization, deserialization) and was well documented. But several pieces
+that the AlphaZero paper explicitly relies on were absent or only implicit,
+and a few design choices would hurt either correctness on non-toy games
 (chess, Go) or performance once MCTS is doing millions of expansions.
 
 The issues are grouped by severity. "Blocking" means it will be hard or
@@ -19,13 +19,36 @@ real cost; "Polish" is naming, docs, and minor design.
 
 ---
 
-## Planned direction (agreed)
+## Current status (updated 2026-06-08)
 
-After the initial review the following design decisions have been taken
-for the next iteration of the API. They resolve B1 and B2 outright and
-reshape the signatures referenced by S1 / S7 / S8. The remaining
-"Blocking" items (B3, B4, B5) and the rest of the "Significant" /
-"Polish" sections are still open.
+Date: 2026-06-08
+Status: v0.1.0 implementation reflected in this review
+Area: AlphaZero API design review and migration docs
+Sources: `src/include/alpha-zero-api/game.h`,
+`src/include/alpha-zero-api/policy_output.h`,
+`src/include/alpha-zero-api/defaults/serializer.h`,
+`src/include/alpha-zero-api/defaults/deserializer.h`,
+`doc/migration-guides/v0.0.5-to-v0.1.0.md`
+
+The v0.1.0 AlphaZero API now resolves the original blocking items B1-B5.
+The `Game` concept in `src/include/alpha-zero-api/game.h` requires
+`kHistoryLookback`, `kPolicySize`, `kMaxRounds`, `PolicyIndex(action)`,
+and the zero-allocation `ApplyActionInPlace` / `UndoLastAction` pair.
+`policy_output.h` splits the old `PolicyOutput` type into `Evaluation`
+for network predictions and `TrainingTarget` for replay-buffer labels,
+while the default serializer/deserializer use `game.PolicyIndex(action)`
+to scatter and gather the fixed-size `1 + G::kPolicySize` network output.
+
+---
+
+## Planned direction (implemented in v0.1.0)
+
+After the initial review the following design decisions were taken and
+implemented for v0.1.0. They resolve B1 and B2 outright and reshape the
+signatures referenced by S1 / S7 / S8. The implementation also resolves
+B3, B4, and B5 through the `Evaluation` / `TrainingTarget` split, the
+`kPolicySize` / `PolicyIndex(action)` policy layout contract, and the
+`kMaxRounds` self-play cap.
 
 1. **Drop the virtual `IGame` interface; replace it with a C++20
    `concept`** (working name `Game`). Concrete game types are plain
@@ -40,11 +63,9 @@ reshape the signatures referenced by S1 / S7 / S8. The remaining
    game directly.
 
 3. **History lives in the engine, not the game.** The `Game` concept
-   exposes a `HistoryLookback()` (preferred form: a `static constexpr
-std::size_t kHistoryLookback`; a runtime member-function variant is
-   acceptable for games whose lookback isn't known at compile time)
+   exposes a `static constexpr std::size_t kHistoryLookback`
    so the engine knows how deep a window to keep. API methods that
-   need history take an additional `RingBufferView<const G>`
+   need history take an additional `RingBufferView<G>`
    argument. The game implementer never has to track history
    themselves; the engine is the single owner.
 
@@ -65,7 +86,7 @@ std::size_t kHistoryLookback`; a runtime member-function variant is
 
 The original review of B1 / B2 immediately below reflects the API
 _before_ these decisions; "Suggested API surface to add" near the
-bottom has been rewritten to reflect the planned shape.
+bottom has been rewritten to reflect the implemented v0.1.0 shape.
 
 ---
 
@@ -96,10 +117,11 @@ it is exactly the kind of contract the API should formalize, because:
 3. Once history is in `B`, every `Copy()` and `GameAfterAction()` copies
    that history too — see B2 below.
 
-**Resolution (planned).** History is moved out of `IGame` entirely.
+**Resolution (implemented in v0.1.0).** History is moved out of `IGame`
+entirely.
 The game concept exposes only its required lookback depth
 (`G::kHistoryLookback`); the engine maintains a `RingBuffer<G>` of
-recent states and passes a `RingBufferView<const G>` to any consumer
+recent states and passes a `RingBufferView<G>` to any consumer
 that needs it (serializer, augmenter). Markov games declare
 `kHistoryLookback == 0` and never see the history view used. Chess /
 Go declare e.g. `kHistoryLookback == 8` and the engine guarantees a
@@ -135,7 +157,8 @@ Symptoms today:
 - The `Copy()` API is similarly heap-only and is needed every time MCTS
   wants to fork from the current root.
 
-**Resolution (planned).** Take the value-semantic path, all the way:
+**Resolution (implemented in v0.1.0).** Take the value-semantic path, all
+the way:
 
 - The virtual `IGame` interface is dropped in favor of a `Game`
   concept. Concrete game types are stack-allocated value types whose
@@ -210,6 +233,14 @@ Two different concerns are tangled here:
   - `probabilities[i]` corresponds to `actions[i]` and is normalized
     over **valid actions only**.
 
+**Resolution (implemented in v0.1.0).** `PolicyOutput` was removed and
+replaced by two explicit structs in
+`src/include/alpha-zero-api/policy_output.h`: `Evaluation` for decoded
+network predictions and `TrainingTarget` for replay-buffer labels. The
+old vector constructors that inferred the value from `nn_output.front()`
+are gone; deserializers now own the network-output layout and serializers
+consume `TrainingTarget` directly.
+
 ### B4. The action ↔ policy-index mapping is an unwritten contract
 
 The serializer produces a fixed-size policy-output vector; the
@@ -263,6 +294,13 @@ There are two problems:
   That is what the network ultimately wants, and it removes a hot-loop
   conversion in the engine.
 
+**Resolution (implemented in v0.1.0).** The `Game` concept now requires
+`static constexpr std::size_t kPolicySize` and a `PolicyIndex(action)`
+member mapping each `action_t` to `[0, kPolicySize)`. The default policy
+serializer scatters a `TrainingTarget` into `[z, p_0, ..., p_{kPolicySize-1}]`
+with `z` in slot 0, and the default deserializer gathers the legal-action
+subset via `game.PolicyIndex(action)` into an `Evaluation`.
+
 ### B5. No game-length cap surfaced
 
 The AlphaZero paper hard-caps self-play games (e.g. 512 ply for chess) so
@@ -282,6 +320,11 @@ virtual std::optional<uint32_t> MaxRounds() const noexcept { return std::nullopt
 
 with the documented contract that `IsOver()` must return true if
 `CurrentRound() >= *MaxRounds()`.
+
+**Resolution (implemented in v0.1.0).** The `Game` concept now requires
+`static constexpr std::optional<uint32_t> kMaxRounds`. If the cap is set,
+`IsOver()` must return true once `CurrentRound() >= *kMaxRounds`; the
+Tic-Tac-Toe example in `test/tic_tac_toe/game.cc` enforces this contract.
 
 ---
 
@@ -496,12 +539,11 @@ It's worth saying explicitly, because most of this report is criticism:
 
 ---
 
-## Suggested API surface (reflecting the planned direction)
+## Suggested API surface (v0.1.0 shape)
 
-This section sketches the new shape after the decisions above. It is
-not final — names will move, and constraints in the concept will get
-tightened as the engine surfaces requirements — but the shape is
-representative.
+This section records the v0.1.0 API shape after the decisions above.
+The canonical declarations live under `src/include/alpha-zero-api/`;
+the snippets here are a design-review source map for the key contracts.
 
 ### The `Game` concept (replaces virtual `IGame`)
 
@@ -520,6 +562,10 @@ concept Game = requires(G g, const G& cg,
   // history depth — compile-time per game type; Markov games use 0
   { G::kHistoryLookback } -> std::convertible_to<std::size_t>;
 
+  // fixed policy layout and optional self-play cap
+  { G::kPolicySize } -> std::convertible_to<std::size_t>;
+  { G::kMaxRounds } -> std::convertible_to<std::optional<uint32_t>>;
+
   // observers
   { cg.GetBoard()       } -> std::convertible_to<const typename G::board_t&>;
   { cg.CurrentRound()   } -> std::same_as<uint32_t>;
@@ -531,6 +577,9 @@ concept Game = requires(G g, const G& cg,
   { cg.IsOver()         } -> std::same_as<bool>;
   { cg.GetScore(p)      } -> std::same_as<float>;
 
+  // policy-vector layout: action -> slot in [0, kPolicySize)
+  { cg.PolicyIndex(a) } -> std::convertible_to<std::size_t>;
+
   // mutation — primary transition API; zero allocations on the hot path
   { g.ApplyActionInPlace(a) } -> std::same_as<void>;
   { g.UndoLastAction()      } -> std::same_as<void>;
@@ -540,13 +589,6 @@ concept Game = requires(G g, const G& cg,
   { cg.ActionToString(a)     } -> std::same_as<std::string>;
   { cg.ActionFromString(std::string_view{}) }
       -> std::same_as<std::expected<typename G::action_t, typename G::error_t>>;
-
-  // (B4 — still being designed; likely `kPolicySize` + `PolicyIndex(a)`
-  //  hooks here so the deserializer no longer needs the runtime
-  //  `actions` list.)
-
-  // (B5 — likely `static constexpr std::optional<uint32_t> kMaxRounds`
-  //  with the `IsOver()`-must-respect-it contract.)
 };
 
 // Free function — non-mutating apply, defined once for any Game.
@@ -637,10 +679,11 @@ class IGameSerializer {
  public:
   virtual ~IGameSerializer() = default;
   // history.Size() == G::kHistoryLookback (engine guarantees this; for
-  // games with kHistoryLookback == 0 the view is empty).
+  // the first few plies it may be a shorter prefix; for games with
+  // kHistoryLookback == 0 the view is empty).
   [[nodiscard]] virtual std::vector<float> SerializeCurrentState(
       const G& game,
-      RingBufferView<const G> history) const noexcept = 0;
+      RingBufferView<G> history) const noexcept = 0;
 };
 
 template <Game G>
@@ -652,11 +695,11 @@ class IPolicyOutputSerializer {
       const TrainingTarget& target) const noexcept = 0;
 };
 
-template <Game G>
+template <Game G, typename E>
 class IPolicyOutputDeserializer {
  public:
   virtual ~IPolicyOutputDeserializer() = default;
-  [[nodiscard]] virtual std::expected<Evaluation, typename G::error_t>
+  [[nodiscard]] virtual std::expected<Evaluation, E>
   Deserialize(const G& game,
               std::span<const float> output) const noexcept = 0;
 };
@@ -665,9 +708,21 @@ template <Game G>
 class IInferenceAugmenter {
  public:
   virtual ~IInferenceAugmenter() = default;
-  // Exact return shape TBD — likely an Augmentation handle that
-  // bundles the augmented games with an Interpret() callback, so
-  // callers don't have to drag two parallel containers around.
+  [[nodiscard]] virtual std::vector<G> Augment(
+      const G& game) const noexcept = 0;
+  [[nodiscard]] virtual Evaluation Interpret(
+      const G& original,
+      std::span<const G> augmented,
+      std::span<const Evaluation> evaluations) const noexcept = 0;
+};
+
+template <Game G>
+class ITrainingAugmenter {
+ public:
+  virtual ~ITrainingAugmenter() = default;
+  [[nodiscard]] virtual std::vector<std::pair<G, TrainingTarget>> Augment(
+      const G& game,
+      const TrainingTarget& target) const noexcept = 0;
 };
 ```
 
@@ -700,22 +755,27 @@ API surface_):
 
 1. ~~**Add history support (B1)**~~ — handled by `kHistoryLookback`
    on the `Game` concept plus engine-owned `RingBuffer<G>` and
-   `RingBufferView<const G>` passed to consumers.
+   `RingBufferView<G>` passed to consumers.
 2. ~~**Add an `ApplyActionInPlace` / `UndoLastAction` pair (B2)**~~ —
    adopted as the primary transition API; the virtual `IGame`
    interface is dropped in favor of a value-semantic `Game` concept
    so games can be stack-allocated.
+3. ~~**Split `PolicyOutput` (B3)**~~ — `Evaluation` now represents
+   decoded network predictions, while `TrainingTarget` represents
+   replay-buffer labels.
+4. ~~**Formalize the action ↔ policy-index mapping (B4)**~~ —
+   `kPolicySize` and `PolicyIndex(action)` are now required by
+   `Game`, and the default serializer/deserializer scatter and gather
+   through that mapping.
+5. ~~**Surface a game-length cap (B5)**~~ — `kMaxRounds` is now part
+   of the `Game` static contract, with `IsOver()` required to respect
+   the cap when it is set.
 
 Still open:
 
-1. **Formalize the action ↔ policy-index mapping (B4)** — today the
-   default deserializer is broken for any non-trivial game, and the
-   contract between serializer and deserializer is implicit. The
-   concept sketch leaves `kPolicySize` / `PolicyIndex(a)` as a TBD
-   placeholder.
-2. The remaining "Significant" / "Polish" items, plus B3 (split
-   `PolicyOutput` into `Evaluation` / `TrainingTarget` — partly
-   addressed in the suggested API surface) and B5 (game-length cap).
+1. The remaining "Significant" / "Polish" items below should be
+   re-triaged against the v0.1.0 implementation before they are treated
+   as current work.
 
 Everything else is a real improvement but won't block training a
 working agent.
